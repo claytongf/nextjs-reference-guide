@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "search:index": "tsx scripts/build-search-index.ts",
+    "predev": "npm run search:index",
     "dev": "next dev",
+    "prebuild": "npm run search:index",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -31,6 +34,8 @@
     "@types/mdx": "^2.0.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
+    "flexsearch": "^0.8.212",
     "github-slugger": "^2.0.0",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.20.0",
@@ -67,6 +72,7 @@
     "prettier": "^3.8.4",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "tailwindcss": "^4",
+    "tsx": "^4.22.4",
     "typescript": "^5",
     "vitest": "^4.1.9"
   }

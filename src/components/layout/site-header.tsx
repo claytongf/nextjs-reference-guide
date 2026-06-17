@@ -2,6 +2,7 @@ import Link from "next/link";
 import { GitHubIcon } from "@/components/icons";
 import { siteConfig } from "@/lib/site-config";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SearchCommand } from "@/components/search/search-command";
 import { buttonVariants } from "@/components/ui/button";
 
 export function SiteHeader() {
@@ -28,8 +29,8 @@ export function SiteHeader() {
             ))}
           </nav>
         </div>
-        <div className="flex items-center gap-1">
-          {/* ⌘K search palette is wired up in Phase 2. */}
+        <div className="flex items-center gap-2">
+          <SearchCommand />
           <a
             href={siteConfig.links.github}
             target="_blank"

@@ -36,6 +36,15 @@ yarn-error.log*
 # vercel
 .vercel
 
+# generated search index (built by scripts/build-search-index.ts)
+/public/search-index.json
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/.playwright/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
