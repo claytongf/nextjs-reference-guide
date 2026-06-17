@@ -1,0 +1,50 @@
+---
+title: Your First Next.js App
+summary: The App Router, file conventions, and how a page becomes a route.
+track: junior
+order: 3
+tags: [nextjs, app-router, routing]
+prerequisites: [tracks/junior/thinking-in-components]
+---
+
+Next.js 16 uses the **App Router**: routes are defined by folders inside `app/`,
+and special files describe each segment.
+
+## File conventions
+
+<FileTree
+  tree={`app/
+  layout.tsx      → shared UI that wraps every page
+  page.tsx        → the / route
+  about/
+    page.tsx      → the /about route
+  blog/
+    [slug]/
+      page.tsx    → dynamic /blog/:slug route`}
+/>
+
+A `page.tsx` makes a route public. A `layout.tsx` wraps pages in that segment
+and persists across navigation.
+
+## A page is a Server Component by default
+
+```tsx
+// app/page.tsx
+export default function Home() {
+  return <h1>Welcome</h1>;
+}
+```
+
+This renders on the server. You only reach for `"use client"` when you need
+interactivity — state, effects, or browser APIs.
+
+<Callout type="info" title="Run it">
+  Start the dev server with `npm run dev` and open
+  <code>http://localhost:3000</code>. Editing `app/page.tsx` hot-reloads
+  instantly.
+</Callout>
+
+## What's next
+
+You now know how routes and components fit together. The Mid-level track digs
+into the **server/client boundary** and how to fetch data.

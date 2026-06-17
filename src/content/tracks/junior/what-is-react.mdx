@@ -1,0 +1,42 @@
+---
+title: What is React?
+summary: A mental model for React — components, declarative UI, and the virtual DOM.
+track: junior
+order: 1
+tags: [react, fundamentals]
+---
+
+React is a JavaScript library for building user interfaces out of **components** —
+self-contained pieces of UI that you compose like functions.
+
+## Declarative UI
+
+Instead of manually updating the DOM step by step, you describe _what_ the UI
+should look like for a given state, and React figures out _how_ to update the
+screen efficiently.
+
+```jsx
+function Greeting({ name }) {
+  return <h1>Hello, {name}!</h1>;
+}
+```
+
+When `name` changes, you don't touch the DOM — you re-render with new data and
+React reconciles the difference.
+
+<Callout type="info" title="JSX is not HTML">
+  JSX looks like HTML but compiles to function calls. `className` replaces
+  `class`, and JavaScript expressions go inside curly braces.
+</Callout>
+
+## Why components?
+
+- **Reusable** — write once, use anywhere.
+- **Composable** — small components combine into screens.
+- **Testable** — a component is just a function of its props.
+
+## Where Next.js fits
+
+React on its own is just the view layer. **Next.js** is a framework built on
+React that adds routing, data fetching, rendering strategies, and a production
+build — everything you need to ship a real application.

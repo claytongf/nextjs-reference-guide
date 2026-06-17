@@ -1,0 +1,72 @@
+---
+title: Thinking in Components
+summary: Props, state, and composition — the three ideas you reuse every day.
+track: junior
+order: 2
+tags: [react, components, props, state]
+prerequisites: [tracks/junior/what-is-react]
+---
+
+Most of React is three ideas working together: **props**, **state**, and
+**composition**.
+
+## Props flow down
+
+Props are read-only inputs passed from parent to child.
+
+```jsx
+function Avatar({ src, alt }) {
+  return <img src={src} alt={alt} className="rounded-full" />;
+}
+
+function Profile() {
+  return <Avatar src="/me.jpg" alt="My avatar" />;
+}
+```
+
+## State is local memory
+
+State is data a component owns and can change over time. Updating it triggers a
+re-render.
+
+```jsx
+"use client";
+import { useState } from "react";
+
+export function Counter() {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount(count + 1)}>Count: {count}</button>;
+}
+```
+
+<Callout type="warning" title="State needs a client component">
+  Hooks like `useState` only run in Client Components. In Next.js you opt in
+  with the `"use client"` directive at the top of the file. You'll learn why in
+  the Mid-level track.
+</Callout>
+
+## Composition over configuration
+
+Build complex UI by nesting small components and passing `children`:
+
+```jsx
+function Card({ children }) {
+  return <div className="rounded-lg border p-4">{children}</div>;
+}
+```
+
+<Steps>
+
+### Identify the pieces
+
+Break the screen into a tree of components.
+
+### Decide what's props vs. state
+
+Anything passed in is a prop; anything that changes locally is state.
+
+### Compose them
+
+Assemble the tree and let data flow down.
+
+</Steps>

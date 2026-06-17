@@ -10,8 +10,31 @@ const nextConfig: NextConfig = {
 
 const withMDX = createMDX({
   extension: /\.(md|mdx)$/,
-  // remark/rehype plugins are wired up in Phase 1 (highlighting, slugs, gfm...).
-  options: {},
+  options: {
+    // Turbopack runs plugins in Rust: pass plugin *names* (strings), and only
+    // serializable options — JavaScript functions cannot be passed across.
+    remarkPlugins: [
+      // Parse & strip YAML frontmatter so it doesn't render as content.
+      "remark-frontmatter",
+      // GitHub Flavored Markdown (tables, strikethrough, task lists...).
+      "remark-gfm",
+    ],
+    rehypePlugins: [
+      // Add `id`s to headings (github-slugger), so the TOC can link to them.
+      "rehype-slug",
+      // Wrap each heading in an anchor link.
+      ["rehype-autolink-headings", { behavior: "wrap" }],
+      // Syntax highlighting via Shiki. `keepBackground: false` lets our CSS
+      // control the code block background for light/dark parity.
+      [
+        "rehype-pretty-code",
+        {
+          theme: { light: "github-light", dark: "github-dark" },
+          keepBackground: false,
+        },
+      ],
+    ],
+  },
 });
 
 export default withMDX(nextConfig);

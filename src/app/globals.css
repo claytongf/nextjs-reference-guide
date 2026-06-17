@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /* next-themes toggles a `.dark` class on <html>; map Tailwind's dark variant to it. */
 @custom-variant dark (&:is(.dark *));
@@ -39,4 +40,62 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* --- Shiki / rehype-pretty-code --- */
+/* rehype-pretty-code emits two color sets; show the right one per theme. */
+code[data-theme],
+code[data-theme] span {
+  color: var(--shiki-light);
+}
+
+.dark code[data-theme],
+.dark code[data-theme] span {
+  color: var(--shiki-dark);
+}
+
+/* Inline code vs. block code. Blocks are wrapped by our CodeBlock component. */
+pre code {
+  display: grid;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+/* Highlighted lines / words via rehype-pretty-code meta. */
+[data-highlighted-line] {
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+}
+
+[data-rehype-pretty-code-figure] [data-line] {
+  padding-inline: 1rem;
+}
+
+/* rehype-autolink-headings wraps heading text in an anchor; keep it looking
+   like a heading, not a link. */
+.prose :is(h1, h2, h3, h4) a {
+  color: inherit;
+  font-weight: inherit;
+  text-decoration: none;
+}
+
+/* <Steps>: number each immediate h3 via a CSS counter. */
+.steps > h3 {
+  counter-increment: step;
+  position: relative;
+}
+
+.steps > h3::before {
+  content: counter(step);
+  position: absolute;
+  left: -2.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 9999px;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  font-size: 0.8rem;
+  font-weight: 600;
 }

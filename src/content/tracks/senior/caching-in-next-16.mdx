@@ -1,0 +1,72 @@
+---
+title: Caching with "use cache"
+summary: Next.js 16's Cache Components model — the use cache directive, cacheLife, and cacheTag.
+track: senior
+order: 1
+tags: [nextjs, caching, use-cache, performance]
+prerequisites: [tracks/mid/fetching-data]
+---
+
+Next.js 16 introduces **Cache Components** and the `use cache` directive — a
+new, explicit caching model that replaces a lot of implicit behavior from
+earlier versions.
+
+<Callout type="warning" title="This changed in Next.js 16">
+  If you learned Next.js on an older version, forget the old defaults. Caching
+  is now opt-in via `use cache`, and you must enable it in config first.
+</Callout>
+
+## Enable Cache Components
+
+```ts
+// next.config.ts
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  cacheComponents: true,
+};
+
+export default nextConfig;
+```
+
+## Mark something cacheable
+
+`use cache` works at the file, component, or function level:
+
+```tsx
+export async function getProducts() {
+  "use cache";
+  const res = await fetch("https://api.example.com/products");
+  return res.json();
+}
+```
+
+<Callout type="info" title="Read request data outside the cache">
+  A cached scope can't read <code>cookies()</code> or <code>headers()</code>
+  directly. Read them outside and pass the values in as arguments — that keeps
+  the cached output keyed correctly.
+</Callout>
+
+## Control lifetime and invalidation
+
+- `cacheLife` sets how long an entry stays fresh.
+- `cacheTag` tags an entry so you can invalidate it on demand.
+- `revalidateTag` / `updateTag` invalidate by tag after a mutation.
+
+```tsx
+import { cacheLife, cacheTag } from "next/cache";
+
+export async function getPost(id: string) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(`post-${id}`);
+  return db.post.find(id);
+}
+```
+
+## Variants
+
+- `"use cache: private"` — for data you can't refactor to pass as arguments
+  (e.g. compliance constraints).
+- `"use cache: remote"` — lets the platform provide a dedicated cache handler,
+  at the cost of a network round-trip.

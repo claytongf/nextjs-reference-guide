@@ -1,0 +1,50 @@
+---
+title: cookies()
+summary: Read and write HTTP cookies from Server Components, Actions, and Route Handlers.
+track: reference
+order: 1
+tags: [function, cookies, request, async]
+---
+
+`cookies()` lets you read incoming request cookies and set outgoing cookies. In
+Next.js 16 it is **async** — you must `await` it.
+
+## Reading cookies
+
+```tsx
+import { cookies } from "next/headers";
+
+export default async function Page() {
+  const cookieStore = await cookies();
+  const theme = cookieStore.get("theme")?.value;
+  return <p>Theme: {theme ?? "system"}</p>;
+}
+```
+
+## Setting cookies
+
+You can only **set** cookies in a Server Action or Route Handler (not while
+rendering a page).
+
+```tsx
+import { cookies } from "next/headers";
+
+export async function setTheme(theme: string) {
+  "use server";
+  const cookieStore = await cookies();
+  cookieStore.set("theme", theme, { httpOnly: true, path: "/" });
+}
+```
+
+<Callout type="warning" title="Cookies opt a route into dynamic rendering">
+  Reading cookies makes a route depend on the request, so it can't be statically
+  cached. Inside a <code>"use cache"</code> scope, read cookies *outside* and
+  pass the value in as an argument.
+</Callout>
+
+## Common methods
+
+- `get(name)` / `getAll()` — read.
+- `set(name, value, options)` — write (Action/Route Handler only).
+- `delete(name)` — remove.
+- `has(name)` — check existence.

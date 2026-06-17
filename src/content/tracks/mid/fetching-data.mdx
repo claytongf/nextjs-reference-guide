@@ -1,0 +1,66 @@
+---
+title: Fetching Data
+summary: Async Server Components, fetch, and streaming with Suspense.
+track: mid
+order: 2
+tags: [nextjs, data-fetching, suspense, async]
+prerequisites: [tracks/mid/server-and-client-components]
+---
+
+Because Server Components can be `async`, data fetching is just `await` — no
+`useEffect`, no loading-state juggling on the client.
+
+```tsx
+export default async function Page() {
+  const res = await fetch("https://api.example.com/posts");
+  const posts = await res.json();
+
+  return (
+    <ul>
+      {posts.map((p) => (
+        <li key={p.id}>{p.title}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## Streaming with Suspense
+
+Wrap a slow component in `<Suspense>` to stream the rest of the page
+immediately and fill in the slow part when it's ready.
+
+```tsx
+import { Suspense } from "react";
+
+export default function Page() {
+  return (
+    <section>
+      <h1>Dashboard</h1>
+      <Suspense fallback={<p>Loading metrics…</p>}>
+        <Metrics />
+      </Suspense>
+    </section>
+  );
+}
+```
+
+A `loading.tsx` file gives a whole route segment a Suspense fallback for free.
+
+<Callout type="info" title="Where does data fetching belong?">
+  Fetch in the Server Component that needs the data. Requests are deduplicated,
+  so you can fetch the same resource in multiple components without extra
+  round-trips.
+</Callout>
+
+## Mutating data
+
+To change data, use a **Server Action** — an async function marked with
+`"use server"` that runs on the server and can be called from a form or event.
+
+```tsx
+async function createPost(formData: FormData) {
+  "use server";
+  await db.post.create({ title: formData.get("title") as string });
+}
+```

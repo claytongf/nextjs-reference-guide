@@ -1,0 +1,57 @@
+---
+title: Scaling the Codebase
+summary: Conventions, boundaries, and trade-offs when a Next.js app grows with the team.
+track: tech-lead
+order: 1
+tags: [architecture, standards, scaling]
+prerequisites: [tracks/senior/caching-in-next-16]
+---
+
+As a tech lead, your job shifts from writing features to making decisions that
+keep the codebase fast to change as the team grows.
+
+## Establish boundaries early
+
+- **Server by default, client at the leaves.** Keep `"use client"` boundaries
+  small and pushed to the edge of the tree.
+- **Co-locate** components, tests, and styles with the feature they belong to.
+- **One source of truth** for shared types (Zod schemas at the boundary).
+
+<Callout type="info" title="Make the right thing the easy thing">
+  Encode conventions in tooling — ESLint rules, a typed content layer, CI checks
+  — so they hold without code review catching every drift.
+</Callout>
+
+## Decide caching deliberately
+
+With `use cache`, caching is now an architectural choice per data source.
+Document, for each one:
+
+- How fresh must it be? (`cacheLife`)
+- How is it invalidated? (`cacheTag` + `revalidateTag`)
+- Is it per-user? (`use cache: private`)
+
+## Trade-offs worth writing down
+
+<Steps>
+
+### Rendering strategy
+
+Static, dynamic, or streamed? Default to static and opt into dynamic only where
+request data is required.
+
+### Data ownership
+
+Which layer owns each entity, and who is allowed to mutate it?
+
+### Dependency budget
+
+Every dependency is a long-term maintenance cost. Prefer the platform and the
+standard library before adding one.
+
+</Steps>
+
+## Keep the build honest
+
+A green CI pipeline (lint, typecheck, tests, build) is the contract. If a
+convention matters, make it fail the build — not just a comment in review.

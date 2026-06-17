@@ -1,0 +1,65 @@
+---
+title: Server and Client Components
+summary: The defining model of the App Router — where code runs and why it matters.
+track: mid
+order: 1
+tags: [nextjs, rsc, server-components, use-client]
+prerequisites: [tracks/junior/your-first-nextjs-app]
+---
+
+In the App Router, components are **Server Components by default**. They run on
+the server, never ship their code to the browser, and can directly access
+server resources like the database or filesystem.
+
+## When you need a Client Component
+
+Add the `"use client"` directive at the top of a file to create a client
+boundary. You need it for:
+
+- `useState`, `useEffect`, and other hooks
+- Event handlers (`onClick`, `onChange`)
+- Browser-only APIs (`window`, `localStorage`)
+
+```tsx
+"use client";
+
+import { useState } from "react";
+
+export function LikeButton() {
+  const [liked, setLiked] = useState(false);
+  return (
+    <button onClick={() => setLiked((v) => !v)}>{liked ? "♥" : "♡"}</button>
+  );
+}
+```
+
+<Callout type="info" title="The directive marks a boundary, not every file">
+  You only add `"use client"` at the entry point. Components imported *into* a
+  client component are part of the client bundle automatically.
+</Callout>
+
+## Composition pattern
+
+Keep Server Components as the default and push client boundaries to the leaves.
+A common trick: pass a Server Component as `children` to a Client Component so
+the server-rendered content stays on the server.
+
+```tsx
+// Server Component
+import { Panel } from "./panel"; // client
+import { Stats } from "./stats"; // server
+
+export default function Page() {
+  return (
+    <Panel>
+      <Stats />
+    </Panel>
+  );
+}
+```
+
+<Callout type="warning" title="Don't import server-only code into client files">
+  Database clients and secrets belong on the server. Reach for the `server-only`
+  package to fail the build if such a module is ever imported into a client
+  component.
+</Callout>

@@ -1,0 +1,39 @@
+---
+title: '"use client"'
+summary: Declares a client boundary — the entry point for components rendered in the browser.
+track: reference
+order: 1
+tags: [directive, use-client, client-components]
+---
+
+The `"use client"` directive declares an entry point for components to be
+rendered on the **client**. Use it when a component needs client-side
+JavaScript: state, effects, event handlers, or browser APIs.
+
+## Syntax
+
+Place it at the very top of the file, before any imports.
+
+```tsx
+"use client";
+
+import { useState } from "react";
+
+export default function Counter() {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount(count + 1)}>Count: {count}</button>;
+}
+```
+
+## Key points
+
+- It marks a **boundary**, not every file. Components imported into a client
+  component are part of the client bundle automatically.
+- Everything below the boundary is client-rendered; you cannot use async
+  Server Component features inside it.
+- It is a **React** feature, used by Next.js to split the server/client graph.
+
+<Callout type="info" title="Related">
+  See <code>"use server"</code> for Server Actions, and the Mid-level lesson on
+  Server and Client Components for the full mental model.
+</Callout>
