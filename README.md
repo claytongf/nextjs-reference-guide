@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# React/Next Reference
 
-## Getting Started
+The interactive **React & Next.js learning center and reference** — from Junior
+to Tech Lead. Searchable documentation, live code playgrounds, and knowledge
+tests, built on **Next.js 16** and **React 19**.
 
-First, run the development server:
+> This is a work in progress, built in phases. See
+> [the build plan](#roadmap) below for what's done and what's next.
+
+## Tech stack
+
+- **Next.js 16** (App Router, Turbopack) + **React 19**
+- **TypeScript** (strict), **Tailwind CSS v4**
+- **MDX** content (`@next/mdx`) authored in-repo under `content/`
+- **next-themes** dark/light, shadcn-style UI primitives (`src/components/ui`)
+- **Vitest** + React Testing Library (unit), **Playwright** (e2e)
+- **Prettier**, **ESLint 9**, **Husky** + **lint-staged**
+- Self-hosted via **Docker** + **GitHub Actions** CI/CD
+
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# open http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Script               | Purpose                              |
+| -------------------- | ------------------------------------ |
+| `npm run dev`        | Start the dev server                 |
+| `npm run build`      | Production build (standalone output) |
+| `npm run start`      | Run the production build             |
+| `npm run lint`       | ESLint                               |
+| `npm run typecheck`  | `tsc --noEmit`                       |
+| `npm run format`     | Prettier write                       |
+| `npm run test`       | Vitest unit/component tests          |
+| `npm run test:e2e`   | Playwright end-to-end tests          |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Running with Docker
 
-## Learn More
+```bash
+docker compose up --build
+# open http://localhost:3000
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Self-hosted: clone-and-run with Docker, and ship to your own server via GitHub
+Actions. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project structure
 
-## Deploy on Vercel
+```text
+src/
+  app/          # App Router routes, layouts, error/loading boundaries
+  components/   # ui/ primitives, layout/, mdx/ (lesson components)
+  lib/          # utilities, site config, content/search/progress (later phases)
+content/        # MDX learning tracks + reference docs
+scripts/        # content + search-index build scripts (later phases)
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Roadmap
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Phase 0 — Foundations & deploy pipeline** ✅ src/ layout, tooling, UI shell,
+  theme toggle, testing, Docker + CI/CD.
+- **Phase 1 — Content engine** — MDX pipeline, docs routes, sidebar/TOC.
+- **Phase 2 — Search** — build-time index + ⌘K palette.
+- **Phase 3 — Interactive learning** — live playgrounds + Junior→Tech Lead tracks.
+- **Phase 4 — Knowledge tests** — quiz runner + local progress.
+- **Phase 5 — Production hardening** — a11y, perf/caching, SEO, contributor docs.
+
+Built with [Claude Code](https://claude.com/claude-code).

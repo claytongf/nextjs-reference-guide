@@ -1,0 +1,13 @@
+# Local + self-host runtime. For local dev prefer `npm run dev`;
+# this compose file runs the production standalone build in a container.
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nextjs-reference:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped

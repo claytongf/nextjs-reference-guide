@@ -1,0 +1,11 @@
+# Template for the self-hosted server (copy to $DEPLOY_PATH as docker-compose.yml).
+# Unlike the local compose file, this pulls the prebuilt image from GHCR
+# instead of building from source. Replace OWNER/REPO with your repository.
+services:
+  web:
+    image: ghcr.io/OWNER/REPO:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
