@@ -17,7 +17,7 @@ strategy, and the common web vulnerabilities (with fixes), built on
 - **next-themes** dark/light, shadcn-style UI primitives (`src/components/ui`)
 - **Vitest** + React Testing Library (unit), **Playwright** (e2e)
 - **Prettier**, **ESLint 9**, **Husky** + **lint-staged**
-- Self-hosted via **Docker** + **GitHub Actions** CI/CD
+- **GitHub Actions** CI (typecheck, lint, tests, build); **Docker** for self-hosting
 
 ## Getting started
 
@@ -47,10 +47,17 @@ docker compose up --build
 # open http://localhost:3000
 ```
 
+## Continuous integration
+
+GitHub Actions runs the full test pipeline on every push and pull request —
+typecheck, lint, unit/component tests, and a production build. See
+[.github/workflows/ci.yml](.github/workflows/ci.yml).
+
 ## Deployment
 
-Self-hosted: clone-and-run with Docker, and ship to your own server via GitHub
-Actions. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+A Docker setup is included for self-hosting (`docker compose up --build`). The
+production deployment workflow is intentionally left open for now — pick a target
+later.
 
 ## Project structure
 
@@ -71,7 +78,8 @@ scripts/        # content + search-index build scripts (later phases)
 - **Phase 2 — Search** — build-time index + ⌘K palette.
 - **Phase 3 — Content & learning tracks** — Junior→Tech Lead lessons plus
   Testing and Security tracks (57+ lessons); live playgrounds next.
-- **Phase 4 — Knowledge tests** — quiz runner + local progress.
+- **Phase 4 — Knowledge tests** ✅ quiz runner with per-track quizzes, answer
+  explanations, scoring, and local (localStorage) progress.
 - **Phase 5 — Production hardening** — a11y, perf/caching, SEO, contributor docs.
 
 Built with [Claude Code](https://claude.com/claude-code).
