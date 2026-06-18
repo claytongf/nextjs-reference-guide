@@ -84,7 +84,9 @@ test("quiz progress persists and appears on the index", async ({ page }) => {
   await page.goto("/quizzes/web-security");
   await completeQuiz(page);
 
-  await page.getByRole("link", { name: "All quizzes" }).click();
+  // Two "All quizzes" links exist (top back-link + results CTA); the results
+  // CTA is the last one in the DOM.
+  await page.getByRole("link", { name: "All quizzes" }).last().click();
   await expect(
     page.getByRole("heading", { name: "Quizzes", level: 1 }),
   ).toBeVisible();
