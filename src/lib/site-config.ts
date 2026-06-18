@@ -1,5 +1,5 @@
 export const siteConfig = {
-  name: "React/Next Reference",
+  name: "Next.js Reference Guide",
   description:
     "The interactive React & Next.js learning center and reference — from Junior to Tech Lead. Docs, live playgrounds, and knowledge tests.",
   // Primary navigation shown in the header.
@@ -9,7 +9,7 @@ export const siteConfig = {
     { title: "Quizzes", href: "/quizzes" },
   ],
   links: {
-    github: "https://github.com/claytongf/nextjs-cheatsheet",
+    github: "https://github.com/claytongf/nextjs-reference-guide",
   },
 } as const;
 

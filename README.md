@@ -1,4 +1,4 @@
-# React/Next Reference
+# Next.js Reference Guide
 
 The interactive **React & Next.js learning center and reference** — from Junior
 to Tech Lead, plus dedicated **Testing** and **Security** tracks. Searchable
