@@ -1,0 +1,82 @@
+---
+title: React 19 Features
+summary: Actions, the use() hook, useOptimistic, useFormStatus, and metadata.
+track: senior
+order: 5
+tags: [react, react-19, actions, use, useoptimistic]
+prerequisites: [tracks/mid/server-actions-and-mutations]
+---
+
+React 19 standardizes patterns around async data and forms. Here are the ones
+that show up in real apps and interviews.
+
+## Actions and useActionState
+
+An "Action" is an async function passed to `<form action>` or
+`startTransition`. `useActionState` wires it to component state, tracking the
+return value and pending status.
+
+```tsx
+"use client";
+import { useActionState } from "react";
+
+const [error, submit, pending] = useActionState(async (_prev, formData) => {
+  const res = await save(formData);
+  return res.ok ? null : "Could not save";
+}, null);
+
+<form action={submit}>
+  <input name="title" />
+  <button disabled={pending}>Save</button>
+  {error && <p>{error}</p>}
+</form>;
+```
+
+## useFormStatus
+
+Read the enclosing form's pending state from a child component — no prop
+drilling.
+
+```tsx
+"use client";
+import { useFormStatus } from "react-dom";
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return <button disabled={pending}>{pending ? "Saving…" : "Save"}</button>;
+}
+```
+
+## useOptimistic
+
+Show the expected result immediately, then reconcile with the server's response.
+
+```tsx
+const [optimisticTodos, addOptimistic] = useOptimistic(
+  todos,
+  (state, newTodo: Todo) => [...state, newTodo],
+);
+```
+
+## use() — read promises and context conditionally
+
+`use()` unwraps a promise (suspending until it resolves) and, unlike other
+hooks, may be called inside conditions.
+
+```tsx
+const data = use(dataPromise);
+const theme = use(ThemeContext);
+```
+
+## ref as a prop & document metadata
+
+- **`ref` as a prop** — function components accept `ref` directly; `forwardRef`
+  is no longer needed.
+- **Metadata** — render `<title>`, `<meta>`, and `<link>` anywhere and React
+  hoists them into `<head>`.
+
+<Callout type="info" title="The big picture">
+  These APIs collapse the old "loading / error / data" boilerplate into
+  declarative primitives. Combined with Server Components, most data UI no
+  longer needs `useEffect` + `useState` plumbing.
+</Callout>

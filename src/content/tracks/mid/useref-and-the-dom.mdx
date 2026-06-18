@@ -1,0 +1,72 @@
+---
+title: useRef and Accessing the DOM
+summary: Mutable values that survive renders, and reaching real DOM nodes.
+track: mid
+order: 5
+tags: [react, hooks, useref, dom, ref]
+prerequisites: [tracks/mid/useeffect-and-lifecycle]
+---
+
+`useRef` returns a mutable container `{ current }` that **persists across
+renders** and — crucially — **does not trigger a re-render** when you change it.
+
+It has two main uses.
+
+## 1. Referencing a DOM node
+
+Attach a ref to an element to get the real DOM node after render.
+
+```tsx
+"use client";
+import { useRef } from "react";
+
+function SearchBox() {
+  const inputRef = useRef<HTMLInputElement>(null);
+  return (
+    <>
+      <input ref={inputRef} />
+      <button onClick={() => inputRef.current?.focus()}>Focus</button>
+    </>
+  );
+}
+```
+
+## 2. Holding a mutable value
+
+Store something that should survive renders but isn't shown on screen — a timer
+id, a previous value, a flag.
+
+```tsx
+const timerRef = useRef<number | null>(null);
+timerRef.current = window.setTimeout(...);
+```
+
+<Callout type="warning" title="Don't read or write refs during render">
+  Refs are an escape hatch from React's data flow. Reading `ref.current` during
+  render is unsafe because changes don't trigger re-renders. Touch refs in event
+  handlers and effects.
+</Callout>
+
+## ref as a prop (React 19)
+
+In React 19 you can pass `ref` to a function component directly — `forwardRef` is
+no longer required.
+
+```tsx
+function TextInput({ ref, ...props }: { ref?: React.Ref<HTMLInputElement> }) {
+  return <input ref={ref} {...props} />;
+}
+```
+
+## State vs ref
+
+| Need                             | Use     |
+| -------------------------------- | ------- |
+| Re-render when the value changes | `state` |
+| Persist a value, no re-render    | `ref`   |
+| Reach a real DOM element         | `ref`   |
+
+<Callout type="info" title="Rule of thumb">
+  If the UI should update when a value changes, it's state. If you just need to
+  remember something between renders without showing it, it's a ref.
+</Callout>

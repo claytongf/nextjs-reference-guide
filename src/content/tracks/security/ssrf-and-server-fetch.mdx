@@ -1,0 +1,69 @@
+---
+title: SSRF and Server-Side Requests
+summary: When user input controls a server fetch, attackers reach your internals.
+track: security
+order: 7
+tags: [security, ssrf, fetch, validation]
+prerequisites: [tracks/security/security-mindset]
+---
+
+**SSRF** (Server-Side Request Forgery) is when an attacker makes _your server_
+send a request to a destination they choose. Because the server sits inside your
+network, it can reach things the attacker can't — internal services, cloud
+metadata endpoints, databases.
+
+## The vulnerable pattern
+
+```ts
+// ❌ user controls the URL your server fetches
+export async function fetchPreview(url: string) {
+  "use server";
+  const res = await fetch(url); // url = "http://169.254.169.254/latest/meta-data/"
+  return res.text(); // → leaks cloud credentials
+}
+```
+
+Common targets: cloud metadata (`169.254.169.254`), `localhost`/internal admin
+panels, and other private-range hosts.
+
+## How to fix it
+
+<Steps>
+
+### Allowlist destinations
+
+Only fetch hosts you explicitly permit. An allowlist beats trying to blocklist
+every dangerous address.
+
+```ts
+const ALLOWED = new Set(["images.example.com", "cdn.example.com"]);
+const parsed = new URL(url);
+if (parsed.protocol !== "https:" || !ALLOWED.has(parsed.hostname)) {
+  throw new Error("Destination not allowed");
+}
+```
+
+### Block private and link-local ranges
+
+Reject `localhost`, `127.0.0.0/8`, `10/8`, `172.16/12`, `192.168/16`, and
+`169.254.0.0/16`. Resolve the hostname and check the _resolved IP_, not just the
+string, to defeat DNS rebinding.
+
+### Disable redirects (or re-validate them)
+
+A safe URL can 302-redirect to an internal one. Set `redirect: "manual"` and
+re-check the location, or cap redirects.
+
+</Steps>
+
+<Callout type="warning" title="Validate the resolved IP, not just the string">
+  Attackers use DNS names that resolve to internal IPs, IP-encoding tricks, and
+  redirects. Parse the URL, resolve it, and verify the actual IP is public and
+  allowlisted before connecting.
+</Callout>
+
+<Callout type="info" title="Least privilege at the network too">
+  Run the app with egress firewall rules and an IAM role that can't reach the
+  metadata service or internal hosts. Then even a missed check has limited blast
+  radius — defense in depth.
+</Callout>

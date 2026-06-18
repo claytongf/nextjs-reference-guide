@@ -1,0 +1,55 @@
+---
+title: "use cache"
+summary: Marks a function, component, or file as cacheable in Next.js 16.
+track: reference
+order: 5
+tags: [directive, caching, use-cache, performance]
+---
+
+The `"use cache"` directive (Next.js 16's Cache Components model) marks a
+function, component, or whole file as **cacheable**. Its output is reused across
+requests until invalidated, making caching explicit and composable.
+
+## Caching a data function
+
+```tsx
+import { cacheLife, cacheTag } from "next/cache";
+
+async function getProducts() {
+  "use cache";
+  cacheLife("hours"); // freshness profile
+  cacheTag("products"); // label for targeted invalidation
+  return db.product.findMany();
+}
+```
+
+## Caching a component
+
+```tsx
+async function ProductGrid() {
+  "use cache";
+  const products = await getProducts();
+  return <Grid items={products} />;
+}
+```
+
+## Companion APIs
+
+- **`cacheLife(profile)`** — how long the entry stays fresh (e.g. `"seconds"`,
+  `"minutes"`, `"hours"`, or a custom profile).
+- **`cacheTag(tag)`** — attach tags so you can invalidate by tag later.
+- **`revalidateTag(tag)`** / **`updateTag(tag)`** — invalidate on write.
+
+<Callout
+  type="warning"
+  title="Inputs must be serializable; no request data inside"
+>
+  A cached function can't read request-specific data (`cookies()`, `headers()`)
+  inside the cached scope — that would make the result unsafe to share. Read
+  them outside and pass values in as arguments.
+</Callout>
+
+<Callout type="info" title="Pairs with Partial Prerendering">
+  Cache the static parts and stream the dynamic ones behind Suspense. See
+  [Choosing a Rendering Strategy](/docs/tracks/tech-lead/rendering-strategies).
+</Callout>

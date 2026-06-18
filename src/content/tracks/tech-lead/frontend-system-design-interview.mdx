@@ -1,0 +1,72 @@
+---
+title: Frontend System Design Interviews
+summary: A repeatable framework for senior & lead frontend design rounds.
+track: tech-lead
+order: 7
+tags: [interview, system-design, frontend, architecture]
+prerequisites: [tracks/tech-lead/rendering-strategies]
+---
+
+Senior and lead interviews include an open-ended design round ("Design a news
+feed", "Design Google Docs"). Interviewers assess how you _think_, not whether
+you recall one right answer. Use a structure so you never freeze.
+
+## A framework (RADIO)
+
+<Steps>
+
+### Requirements
+
+Clarify scope before designing. Functional (what it does), non-functional
+(performance, offline, a11y, i18n, scale), and what's explicitly out of scope.
+Confirm assumptions out loud.
+
+### Architecture
+
+Sketch the high-level pieces: components, data layer, server vs. client
+boundary, rendering strategy (SSR/SSG/PPR), and how they communicate.
+
+### Data model
+
+Define the entities and the API/contract. Pagination shape (cursor vs. offset),
+normalization, and what's cached where.
+
+### Interfaces / components
+
+Break the UI into a component tree. Define props and the state each owns. Call
+out reusable primitives.
+
+### Optimizations & deep dives
+
+Performance (virtualization, code splitting, caching), accessibility, error and
+empty states, and resilience. Then deep-dive whatever the interviewer probes.
+
+</Steps>
+
+## What signals seniority
+
+- **Driving the conversation** — you structure it; you ask the clarifying
+  questions instead of waiting.
+- **Trade-offs over absolutes** — "cursor pagination because the feed is
+  infinite and offset drifts as items insert."
+- **Naming non-functionals unprompted** — a11y, i18n, performance budgets,
+  observability.
+- **Knowing where to stop** — you go deep where it matters and flag the rest.
+
+## Common frontend topics to rehearse
+
+Infinite scroll & virtualization, optimistic updates, real-time (WebSocket/SSE),
+client caching & invalidation, offline/optimistic sync, design systems,
+rendering strategy selection, and image/asset performance.
+
+<Callout type="info" title="Think out loud">
+  The interview measures communication as much as design. Narrate your
+  reasoning, state assumptions, and check in with the interviewer — a silent
+  genius scores worse than a clear communicator.
+</Callout>
+
+<Callout type="success" title="Tie it back to fundamentals">
+  Every recommendation should trace to a principle from these tracks — rendering
+  strategy, the server/client boundary, state classification, caching. That
+  coherence is what reads as "lead".
+</Callout>

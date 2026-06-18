@@ -1,0 +1,80 @@
+---
+title: Server Actions and Mutations
+summary: Writing data on the server with "use server" functions and revalidation.
+track: mid
+order: 9
+tags: [nextjs, server-actions, mutations, use-server, forms]
+prerequisites: [tracks/mid/server-and-client-components]
+---
+
+**Server Actions** are async functions that run on the server but can be called
+from the client — including directly from a `<form>`. They are how you mutate
+data in the App Router, replacing most hand-written API routes.
+
+## Defining an action
+
+Mark a function with `"use server"`, or put the directive at the top of a file
+to export several actions.
+
+```tsx
+// app/actions.ts
+"use server";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
+export async function createPost(formData: FormData) {
+  const title = String(formData.get("title"));
+  if (!title) throw new Error("Title required");
+
+  await db.post.create({ data: { title } });
+  revalidatePath("/posts"); // refresh cached data
+  redirect("/posts");
+}
+```
+
+## Calling from a form
+
+```tsx
+import { createPost } from "./actions";
+
+<form action={createPost}>
+  <input name="title" />
+  <button type="submit">Create</button>
+</form>;
+```
+
+This works **without client JavaScript** (progressive enhancement) and submits
+without a full page reload once JS loads.
+
+## Refreshing data after a write
+
+- `revalidatePath("/posts")` — invalidate the cache for a route.
+- `revalidateTag("posts")` — invalidate everything tagged `"posts"`.
+
+These tell Next.js to re-fetch on the next request so the UI reflects the change.
+
+<Callout type="danger" title="A Server Action is a public HTTP endpoint">
+  Anyone can invoke it with any arguments — the form is just one caller. You
+  **must** authenticate, authorize, and validate inside every action. Never
+  trust the input or assume the user is allowed to perform the operation.
+</Callout>
+
+## Pending and optimistic UI
+
+Pair actions with React 19 hooks for responsive UX:
+
+- `useActionState` — track result + pending state of an action.
+- `useFormStatus` — read the parent form's pending state in a child button.
+- `useOptimistic` — show the expected result before the server responds.
+
+```tsx
+"use client";
+import { useActionState } from "react";
+
+const [state, formAction, pending] = useActionState(createPost, null);
+```
+
+<Callout type="info" title="When to still use a Route Handler">
+  Use a `route.ts` API when you need a public REST/JSON endpoint, webhooks, or
+  non-form clients. Use Server Actions for first-party UI mutations.
+</Callout>

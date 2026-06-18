@@ -1,0 +1,75 @@
+---
+title: CSRF and Server Actions
+summary: Cross-site request forgery, and why same-origin checks matter.
+track: security
+order: 3
+tags: [security, csrf, server-actions, cookies, samesite]
+prerequisites: [tracks/security/security-mindset]
+---
+
+**CSRF** (Cross-Site Request Forgery) tricks a logged-in user's browser into
+making a state-changing request they didn't intend — because the browser
+automatically attaches their cookies to requests, even ones triggered by a
+malicious site.
+
+## The attack
+
+A victim is logged into your bank. They visit `evil.com`, which contains:
+
+```html
+<form action="https://bank.com/transfer" method="POST">
+  <input name="to" value="attacker" />
+  <input name="amount" value="10000" />
+</form>
+<script>
+  document.forms[0].submit();
+</script>
+```
+
+The browser sends the victim's `bank.com` cookies along — and the transfer
+succeeds, because the server only checked "is there a valid session cookie?"
+
+## How to fix it
+
+<Steps>
+
+### SameSite cookies (the baseline)
+
+Set session cookies to `SameSite=Lax` (or `Strict`) so the browser won't send
+them on cross-site POSTs. This is the single most effective default.
+
+```ts
+cookies().set("session", token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: "lax",
+  path: "/",
+});
+```
+
+### Verify the origin on mutations
+
+Reject state-changing requests whose `Origin`/`Host` don't match your site.
+
+### Use anti-CSRF tokens for sensitive flows
+
+A per-session token submitted with the form and verified server-side, which a
+cross-site attacker can't read or guess.
+
+</Steps>
+
+## Server Actions have built-in protection
+
+Next.js Server Actions are POST-only and include origin/host verification, so
+they reject cross-site invocations by default — a strong baseline.
+
+<Callout type="warning" title="Don't undo the defaults">
+  Two ways teams reintroduce CSRF: using `SameSite=None` without compensating
+  controls, and exposing state-changing **GET** route handlers. Keep mutations
+  on POST with same-site cookies, and verify the origin.
+</Callout>
+
+<Callout type="info" title="Authorization still required">
+  CSRF protection only proves the request came from your site — not that the
+  user is allowed to do it. You still authorize every action (next lesson).
+</Callout>

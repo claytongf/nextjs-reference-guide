@@ -1,0 +1,65 @@
+---
+title: Architecture and Boundaries
+summary: Structuring a large React/Next codebase so it stays changeable.
+track: tech-lead
+order: 3
+tags: [architecture, structure, boundaries, modularity]
+prerequisites: [tracks/tech-lead/scaling-the-codebase]
+---
+
+Architecture is about **managing change**: making the common changes easy and
+the dangerous ones hard. For a growing React/Next app that means clear
+boundaries and dependencies that point one way.
+
+## Organize by feature, not by file type
+
+A `components/`, `hooks/`, `utils/` split scales poorly — one feature scatters
+across the tree. Group by domain so a feature is self-contained and deletable.
+
+<FileTree
+  tree={`src/
+  features/
+    checkout/
+      components/
+      actions.ts      # server actions
+      queries.ts      # data access
+      schema.ts       # zod validation
+    catalog/
+  components/ui/       # shared, generic primitives only
+  lib/                # cross-cutting helpers`}
+/>
+
+## Layered dependencies
+
+Let dependencies flow one direction: UI → feature logic → data access. The data
+layer must never import UI. Enforce it with ESLint boundary rules so violations
+fail CI, not review.
+
+## Server/client boundary as an architectural seam
+
+`"use client"` is more than a render hint — it's where your bundle, secrets, and
+trust model split. Keep secrets and data access strictly server-side; expose
+only serializable, non-sensitive data to client components.
+
+<Callout type="warning" title="The boundary protects more than performance">
+  Anything reachable from a client component ships to the browser. Treat the
+  server/client line as a security boundary, not just a rendering one.
+</Callout>
+
+## Keep modules cohesive and loosely coupled
+
+- **High cohesion**: things that change together live together.
+- **Low coupling**: features talk through small, explicit interfaces, not by
+  reaching into each other's internals.
+- **Stable core, volatile edges**: put fast-changing UI at the leaves; keep
+  domain rules central and well-tested.
+
+<Callout type="info" title="Conway's Law is real">
+  Your architecture will mirror your team structure. Define module ownership
+  alongside the folder boundaries so the code and the org reinforce each other.
+</Callout>
+
+<Callout type="success" title="The test that matters">
+  Good architecture is measured by how easily a new engineer can add a feature
+  or delete an old one without fear. Optimize for that, not for diagrams.
+</Callout>

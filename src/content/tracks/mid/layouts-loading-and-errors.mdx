@@ -1,0 +1,85 @@
+---
+title: Layouts, Loading and Error UI
+summary: The special files that give every route shells, fallbacks, and boundaries.
+track: mid
+order: 8
+tags: [nextjs, layouts, loading, error, suspense, app-router]
+prerequisites: [tracks/mid/routing-and-navigation]
+---
+
+The App Router gives each segment a set of **special files**. You opt into a
+feature just by creating the file.
+
+| File            | Purpose                                         |
+| --------------- | ----------------------------------------------- |
+| `layout.tsx`    | Shared shell; preserves state across navigation |
+| `page.tsx`      | The route's unique UI                           |
+| `loading.tsx`   | Instant fallback while the segment streams      |
+| `error.tsx`     | Catches render errors in the segment (Client)   |
+| `not-found.tsx` | UI for `notFound()` and unmatched routes        |
+| `template.tsx`  | Like layout but remounts on every navigation    |
+
+## Layouts nest and persist
+
+A layout wraps all routes beneath it and **does not re-render** when you
+navigate between its children — so sidebars and nav keep their state.
+
+```tsx
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="grid grid-cols-[250px_1fr]">
+      <Sidebar />
+      <main>{children}</main>
+    </div>
+  );
+}
+```
+
+## loading.tsx → automatic Suspense
+
+Adding `loading.tsx` wraps the segment in a `<Suspense>` boundary. The fallback
+shows instantly while the server component streams in.
+
+```tsx
+export default function Loading() {
+  return <Skeleton />;
+}
+```
+
+## error.tsx → error boundary
+
+Error files are Client Components and receive the error plus a `reset` function
+to retry.
+
+```tsx
+"use client";
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error;
+  reset: () => void;
+}) {
+  return (
+    <div>
+      <p>Something went wrong.</p>
+      <button onClick={reset}>Try again</button>
+    </div>
+  );
+}
+```
+
+<Callout type="info" title="Granular boundaries">
+  Place `loading.tsx` and `error.tsx` deep in the tree so a slow or failing
+  section doesn't take down the whole page — only that segment shows a fallback.
+</Callout>
+
+<Callout type="warning" title="error.tsx can't catch its own layout">
+  An `error.tsx` boundary wraps the segment's `page`, not the sibling `layout`.
+  To catch errors thrown by a layout, put the boundary one level up. The root is
+  covered by `global-error.tsx`.
+</Callout>

@@ -1,0 +1,70 @@
+---
+title: Forms and Controlled Inputs
+summary: Controlled vs uncontrolled inputs, and the modern form Action approach.
+track: junior
+order: 9
+tags: [react, forms, inputs, controlled]
+prerequisites: [tracks/junior/handling-events]
+---
+
+There are two ways to manage form inputs in React.
+
+## Controlled inputs
+
+React state is the single source of truth. The input's `value` comes from state,
+and `onChange` writes back to it.
+
+```tsx
+"use client";
+import { useState } from "react";
+
+function NameField() {
+  const [name, setName] = useState("");
+  return <input value={name} onChange={(e) => setName(e.target.value)} />;
+}
+```
+
+Controlled inputs let you validate, format, or disable the submit button as the
+user types — because you always have the current value.
+
+## Uncontrolled inputs
+
+The DOM holds the value; you read it on submit with a `ref` or from the form
+data. Less code, but you can't react to every keystroke.
+
+```tsx
+const ref = useRef<HTMLInputElement>(null);
+// later: ref.current?.value
+```
+
+## Forms with Actions (React 19 + Next.js)
+
+You can pass a function directly to a `<form action={...}>`. The function
+receives `FormData`, and in Next.js it can run on the server as a Server Action.
+
+```tsx
+function Signup() {
+  async function subscribe(formData: FormData) {
+    "use server";
+    const email = formData.get("email");
+    // ...persist
+  }
+  return (
+    <form action={subscribe}>
+      <input name="email" type="email" />
+      <button type="submit">Subscribe</button>
+    </form>
+  );
+}
+```
+
+<Callout type="info" title="No more onSubmit + preventDefault">
+  The `action` prop handles submission for you — no `e.preventDefault()`, and it
+  works before JavaScript has loaded (progressive enhancement). Track pending
+  state with `useFormStatus`.
+</Callout>
+
+<Callout type="warning" title="Always validate on the server">
+  Client-side validation is for UX only. A malicious user can bypass it, so
+  re-validate every field on the server before trusting it.
+</Callout>

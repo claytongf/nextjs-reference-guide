@@ -1,0 +1,88 @@
+---
+title: Suspense and Streaming
+summary: Declarative loading states and progressively streaming server-rendered UI.
+track: senior
+order: 3
+tags: [react, suspense, streaming, ssr, nextjs]
+prerequisites: [tracks/senior/rendering-and-reconciliation]
+---
+
+**Suspense** lets a component "wait" for something (data, code) and show a
+fallback while it waits — declaratively, without manual loading flags.
+
+```tsx
+<Suspense fallback={<Skeleton />}>
+  <SlowComponent />
+</Suspense>
+```
+
+When `SlowComponent` suspends, React shows the fallback; when it's ready, React
+swaps in the real content.
+
+## Streaming SSR
+
+On the server, Suspense enables **streaming**: React sends the static shell
+immediately, then streams each boundary's HTML as its data resolves. Users see
+content sooner and the page becomes interactive progressively.
+
+```tsx
+export default function Page() {
+  return (
+    <>
+      <Header /> {/* sent instantly */}
+      <Suspense fallback={<Spinner />}>
+        <Feed /> {/* streamed when ready */}
+      </Suspense>
+    </>
+  );
+}
+```
+
+In the App Router, a `loading.tsx` file creates this boundary for a whole
+segment automatically.
+
+## Designing boundaries
+
+- Wrap **slow, independent** sections so fast content isn't blocked.
+- Keep above-the-fold content out of slow boundaries.
+- Multiple boundaries stream in parallel — they don't wait for each other.
+
+<Callout type="info" title="Avoid the all-or-nothing page">
+  Without Suspense, one slow query blocks the entire response. Boundaries let
+  the rest of the page render and stream the slow part in. This is the
+  foundation of Partial Prerendering.
+</Callout>
+
+## Data fetching that suspends
+
+In Server Components, simply `await` your data — the framework suspends at the
+nearest boundary. In Client Components, the `use()` hook unwraps a promise and
+suspends.
+
+```tsx
+"use client";
+import { use } from "react";
+
+function Comments({
+  commentsPromise,
+}: {
+  commentsPromise: Promise<Comment[]>;
+}) {
+  const comments = use(commentsPromise); // suspends until resolved
+  return (
+    <ul>
+      {comments.map((c) => (
+        <li key={c.id}>{c.text}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+<Callout
+  type="warning"
+  title="Don't create the promise during render of the suspending component"
+>
+  Start the fetch in a parent (or Server Component) and pass the promise down.
+  Creating a new promise on every render restarts the request in a loop.
+</Callout>

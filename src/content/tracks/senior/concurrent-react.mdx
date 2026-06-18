@@ -1,0 +1,72 @@
+---
+title: Concurrent React
+summary: Keeping the UI responsive with transitions and deferred values.
+track: senior
+order: 4
+tags: [react, concurrent, usetransition, usedeferredvalue, performance]
+prerequisites: [tracks/senior/rendering-and-reconciliation]
+---
+
+React 18+ can **interrupt rendering** to keep the app responsive. You opt into
+this by marking some updates as low priority, so urgent updates (typing,
+clicking) aren't blocked by expensive ones (rendering a huge filtered list).
+
+## useTransition
+
+Wrap a non-urgent state update in `startTransition`. React keeps the old UI
+interactive and renders the update in the background, giving you a `pending`
+flag.
+
+```tsx
+"use client";
+import { useState, useTransition } from "react";
+
+function Search() {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<Item[]>([]);
+  const [isPending, startTransition] = useTransition();
+
+  function onChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setQuery(e.target.value); // urgent: input stays snappy
+    startTransition(() => {
+      setResults(filter(e.target.value)); // non-urgent: can be interrupted
+    });
+  }
+
+  return (
+    <>
+      <input value={query} onChange={onChange} />
+      {isPending && <Spinner />}
+      <List items={results} />
+    </>
+  );
+}
+```
+
+## useDeferredValue
+
+Get a "lagging" copy of a value that updates after urgent work settles. Great
+when you don't control where the state is set.
+
+```tsx
+const deferredQuery = useDeferredValue(query);
+const list = useMemo(() => filter(deferredQuery), [deferredQuery]);
+```
+
+<Callout type="info" title="Transition vs deferred value">
+  Use `useTransition` when you trigger the update and want a pending flag. Use
+  `useDeferredValue` when you receive a value as a prop and want to render it at
+  lower priority.
+</Callout>
+
+## Why it matters
+
+Without concurrency, a heavy render blocks the main thread — the input freezes
+mid-keystroke. Transitions let React abandon a stale render when newer input
+arrives, so the interface always feels live.
+
+<Callout type="warning" title="It's about scheduling, not speed">
+  Concurrent features don't make the expensive work faster — they make it
+  *interruptible* so it stops blocking interaction. Still optimize the actual
+  computation (memoize, virtualize) for the best result.
+</Callout>

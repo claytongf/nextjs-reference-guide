@@ -1,0 +1,96 @@
+---
+title: Props and State
+summary: The two kinds of data in React — what flows down and what lives inside.
+track: junior
+order: 5
+tags: [react, props, state, usestate]
+prerequisites: [tracks/junior/thinking-in-components]
+---
+
+Every React UI is driven by two kinds of data:
+
+- **Props** — values a parent passes _down_ to a child. Read-only.
+- **State** — values a component owns and can _change_ over time.
+
+When either changes, React re-renders the component to reflect the new data.
+
+## Props flow down
+
+Props are the arguments of a component. They are immutable from the child's
+point of view: a component must never modify its own props.
+
+```tsx
+function Greeting({
+  name,
+  excited = false,
+}: {
+  name: string;
+  excited?: boolean;
+}) {
+  return (
+    <h1>
+      Hello, {name}
+      {excited ? "!" : ""}
+    </h1>
+  );
+}
+
+<Greeting name="Ada" excited />;
+```
+
+<Callout type="info" title="Data flows one way">
+  Parents pass data to children, never the reverse. To send something *up*, a
+  parent passes a callback prop the child can call (e.g. `onChange`).
+</Callout>
+
+## State lives inside
+
+`useState` gives a component a value that survives re-renders and a function to
+update it. Updating state schedules a re-render.
+
+```tsx
+"use client";
+import { useState } from "react";
+
+function Counter() {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount(count + 1)}>Clicked {count}×</button>;
+}
+```
+
+<Callout type="warning" title="State updates are not immediate">
+  `setCount` does not change `count` in the current render — it requests the
+  *next* render. Reading `count` right after calling `setCount` still gives the
+  old value. Use the updater form when the next value depends on the previous:
+  `setCount((c) => c + 1)`.
+</Callout>
+
+## Choosing where state lives
+
+Put state in the **closest common ancestor** of every component that needs it,
+then pass it down as props. This is "lifting state up."
+
+```tsx
+function Form() {
+  const [text, setText] = useState("");
+  return (
+    <>
+      <Input value={text} onChange={setText} />
+      <Preview value={text} />
+    </>
+  );
+}
+```
+
+## Props vs state — quick test
+
+| Question                              | Props | State |
+| ------------------------------------- | ----- | ----- |
+| Passed in from a parent?              | ✅    | ❌    |
+| Can the component change it itself?   | ❌    | ✅    |
+| Changing it re-renders the component? | ✅    | ✅    |
+
+<Callout type="success" title="Rule of thumb">
+  If a value can be computed from props or existing state, don't store it in
+  state — derive it during render. Less state means fewer bugs.
+</Callout>

@@ -1,0 +1,79 @@
+---
+title: Context and Sharing State
+summary: Avoiding prop drilling with Context — and knowing its limits.
+track: mid
+order: 6
+tags: [react, context, state, provider]
+prerequisites: [tracks/mid/usestate-and-usereducer]
+---
+
+**Context** lets a parent provide a value to any descendant without passing it
+through every level as props ("prop drilling"). Think theme, current user, or
+locale.
+
+## Creating and providing
+
+```tsx
+"use client";
+import { createContext, useContext, useState } from "react";
+
+const ThemeContext = createContext<"light" | "dark">("light");
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+  return <ThemeContext value={theme}>{children}</ThemeContext>;
+}
+```
+
+<Callout type="info" title="React 19: <Context> is the Provider">
+  You can render the context object directly as `<ThemeContext value={...}>`
+  instead of `<ThemeContext.Provider value={...}>`.
+</Callout>
+
+## Consuming
+
+```tsx
+const theme = useContext(ThemeContext);
+```
+
+A common pattern is a custom hook that also asserts the provider exists:
+
+```tsx
+function useTheme() {
+  const ctx = useContext(ThemeContext);
+  if (ctx === undefined)
+    throw new Error("useTheme must be inside ThemeProvider");
+  return ctx;
+}
+```
+
+## Context is not a state manager
+
+<Callout type="warning" title="Every consumer re-renders on value change">
+  When the context value changes, *all* components reading it re-render. For
+  large, frequently-changing state, that's a performance trap. Split contexts
+  (e.g. separate value and dispatch), memoize the value, or reach for a
+  dedicated store (Zustand, Redux) for high-churn global state.
+</Callout>
+
+## Context in the App Router
+
+Providers must be Client Components (`"use client"`). Wrap them around
+`children` in a layout so the rest of the tree can stay on the server.
+
+```tsx
+// app/layout.tsx (Server Component)
+export default function RootLayout({ children }) {
+  return (
+    <body>
+      <ThemeProvider>{children}</ThemeProvider>
+    </body>
+  );
+}
+```
+
+<Callout type="success" title="Reach for Context when...">
+  ...the data is low-frequency and genuinely global (theme, auth, i18n). For
+  server data, prefer fetching in Server Components over stuffing it into client
+  Context.
+</Callout>

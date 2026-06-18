@@ -1,0 +1,61 @@
+---
+title: The Security Mindset
+summary: Trust boundaries, the OWASP Top 10, and defense in depth for web apps.
+track: security
+order: 1
+tags: [security, owasp, threat-model, fundamentals]
+prerequisites: [tracks/mid/server-and-client-components]
+---
+
+Security isn't a feature you add at the end — it's a way of reasoning about every
+boundary where untrusted input meets trusted code. This track walks the common
+web vulnerabilities and, for each, **how to fix them in React and Next.js**.
+
+## The one rule: never trust the client
+
+Everything from the browser is attacker-controlled — form fields, URL params,
+headers, cookies, and even the existence of your client-side checks. Anyone can
+craft raw requests with `curl`.
+
+<Callout type="danger" title="Client-side validation is UX, not security">
+  Disabling a button, hiding a field, or validating in the browser stops honest
+  mistakes, never attackers. Every rule must be re-enforced on the server.
+</Callout>
+
+## Trust boundaries in Next.js
+
+The `"use client"` line is a trust and exposure boundary. Anything reachable from
+client code ships to the browser; anything behind a Server Component or Server
+Action runs where you control it.
+
+```text
+[ Browser / Client Components ]  ← untrusted, public, inspectable
+            │ network (Server Actions, route handlers, fetch)
+[ Server Components / Actions ]  ← enforce authn, authz, validation HERE
+            │
+[ Database / Secrets / 3rd-party ]
+```
+
+## The OWASP Top 10 (what this track covers)
+
+The industry reference for the most critical web risks. We map the relevant ones
+to React/Next:
+
+- **Broken Access Control** → authorization & data exposure
+- **Injection** → SQL/command injection, XSS
+- **Cryptographic Failures** → secrets, transport, sessions
+- **SSRF** → server-side fetches with user input
+- **Vulnerable Components** → dependency & supply-chain risk
+- **Security Misconfiguration** → headers, CSP, defaults
+
+## Defense in depth
+
+No single control is enough. Layer them: validate input, parameterize queries,
+authorize every operation, scope secrets to the server, set security headers, and
+keep dependencies patched. If one layer fails, the next still protects you.
+
+<Callout type="info" title="Least privilege & fail closed">
+  Grant the minimum access needed, and design so that when something errors it
+  *denies* by default rather than allowing. A missing check should lock the
+  door, not leave it open.
+</Callout>

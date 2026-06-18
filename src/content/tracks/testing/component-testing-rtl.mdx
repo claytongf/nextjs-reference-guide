@@ -1,0 +1,76 @@
+---
+title: Component Testing with Testing Library
+summary: Rendering components and asserting on what users actually see and do.
+track: testing
+order: 3
+tags: [testing, react-testing-library, components, queries]
+prerequisites: [tracks/testing/unit-testing-with-vitest]
+---
+
+**React Testing Library (RTL)** renders a component into a real DOM (jsdom) and
+gives you queries that mirror how a user perceives the page. You assert on
+accessible output, not internal state.
+
+## A first test
+
+```tsx
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { Counter } from "./counter";
+
+it("increments when clicked", async () => {
+  render(<Counter />);
+
+  const button = screen.getByRole("button", { name: /clicked 0/i });
+  await userEvent.click(button);
+
+  expect(
+    screen.getByRole("button", { name: /clicked 1/i }),
+  ).toBeInTheDocument();
+});
+```
+
+## Query priority — find elements like a user
+
+Prefer accessible queries, in this order:
+
+1. `getByRole` (with `name`) — buttons, headings, inputs, links.
+2. `getByLabelText` — form fields.
+3. `getByPlaceholderText`, `getByText`.
+4. `getByTestId` — last resort, when nothing semantic fits.
+
+<Callout
+  type="warning"
+  title="If you can't query it by role, neither can a screen reader"
+>
+  Struggling to select an element accessibly is a hint your markup has an
+  accessibility gap. Fixing the markup improves both the test and real users'
+  experience.
+</Callout>
+
+## get vs query vs find
+
+| Prefix    | Found   | Not found      | Async |
+| --------- | ------- | -------------- | ----- |
+| `getBy`   | element | throws         | no    |
+| `queryBy` | element | returns `null` | no    |
+| `findBy`  | element | rejects        | yes   |
+
+Use `queryBy` to assert absence (`expect(...).not.toBeInTheDocument()`) and
+`findBy` to wait for something to appear.
+
+## Simulate real interaction
+
+Use `@testing-library/user-event` over `fireEvent` — it dispatches the full
+sequence of events a real user generates (focus, keydown, input…).
+
+```tsx
+await userEvent.type(screen.getByLabelText("Email"), "a@b.com");
+await userEvent.click(screen.getByRole("button", { name: /submit/i }));
+```
+
+<Callout type="info" title="Test the contract, not the internals">
+  Render with props, interact like a user, assert on visible output. You can
+  rewrite the component's internals freely and the test still passes — that's
+  the whole point.
+</Callout>

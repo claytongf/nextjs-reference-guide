@@ -9,6 +9,8 @@ export const TRACKS = [
   "mid",
   "senior",
   "tech-lead",
+  "testing",
+  "security",
   "reference",
 ] as const;
 
@@ -31,6 +33,14 @@ export const TRACK_META: Record<Track, { label: string; description: string }> =
     "tech-lead": {
       label: "Tech Lead",
       description: "Scaling teams, standards, and trade-offs.",
+    },
+    testing: {
+      label: "Testing",
+      description: "Unit, component, and end-to-end testing strategy.",
+    },
+    security: {
+      label: "Security",
+      description: "Common vulnerabilities and how to fix them.",
     },
     reference: {
       label: "Reference",

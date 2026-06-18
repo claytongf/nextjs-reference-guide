@@ -1,0 +1,75 @@
+---
+title: Authentication and Sessions
+summary: Storing credentials, managing sessions, and where tokens belong.
+track: security
+order: 5
+tags: [security, authentication, sessions, cookies, jwt]
+prerequisites: [tracks/security/csrf-and-server-actions]
+---
+
+**Authentication** answers "who are you?". Get it wrong and everything else
+collapses. Most apps should use a vetted library (Auth.js, Clerk, Lucia) rather
+than rolling their own — but you must understand what it's doing.
+
+## Storing passwords
+
+```ts
+import bcrypt from "bcrypt";
+
+const hash = await bcrypt.hash(password, 12); // on signup
+const ok = await bcrypt.compare(password, hash); // on login
+```
+
+<Callout
+  type="danger"
+  title="Never store passwords in plaintext or with fast hashes"
+>
+  Use a slow, salted hash built for passwords — bcrypt, scrypt, or Argon2.
+  General-purpose hashes (MD5, SHA-256) are far too fast and are trivially
+  brute-forced. Never log or email passwords.
+</Callout>
+
+## Where to keep the session token
+
+Store it in an **`HttpOnly`, `Secure`, `SameSite` cookie** — not in
+`localStorage`.
+
+```ts
+cookies().set("session", token, {
+  httpOnly: true, // JavaScript (and XSS) can't read it
+  secure: true, // HTTPS only
+  sameSite: "lax", // CSRF resistance
+  maxAge: 60 * 60 * 24 * 7,
+  path: "/",
+});
+```
+
+<Callout type="warning" title="localStorage is readable by any script">
+  Tokens in `localStorage` are exposed to every XSS payload on the page.
+  `HttpOnly` cookies are invisible to JavaScript, shutting down token theft via
+  XSS.
+</Callout>
+
+## Session hygiene
+
+- **Rotate on privilege change** — issue a new session id on login to prevent
+  session fixation.
+- **Expire and allow revocation** — short lifetimes; a server-side way to kill a
+  session (logout, "sign out everywhere").
+- **Rate-limit + lockout** login attempts to slow brute force; add MFA for
+  sensitive accounts.
+- **Generic error messages** — "invalid email or password," never "no such user"
+  (which enables account enumeration).
+
+## A note on JWTs
+
+Stateless JWTs are convenient but hard to revoke before expiry. For session auth,
+short-lived tokens plus a refresh/rotation strategy — or plain server-side
+sessions — are usually safer. Never put secrets in a JWT payload; it's only
+base64, not encrypted.
+
+<Callout type="info" title="Verify on the server, every request">
+  Treat the session cookie as a claim to check, not a fact. Resolve and validate
+  the current user server-side on each protected request — covered next under
+  authorization.
+</Callout>

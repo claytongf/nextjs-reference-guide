@@ -1,0 +1,70 @@
+---
+title: Handling Events
+summary: Responding to clicks, input, and keyboard with React's event system.
+track: junior
+order: 6
+tags: [react, events, handlers, client]
+prerequisites: [tracks/junior/props-and-state]
+---
+
+You respond to user interaction by passing **event handler** functions to JSX
+props like `onClick` and `onChange`. Handlers run in the browser, so the
+component must be a Client Component.
+
+```tsx
+"use client";
+
+function SaveButton() {
+  function handleClick() {
+    console.log("Saved!");
+  }
+  return <button onClick={handleClick}>Save</button>;
+}
+```
+
+<Callout type="warning" title="Pass the function, don't call it">
+  `onClick={handleClick}` passes the function. `onClick={handleClick()}` *calls*
+  it during render and uses the return value — almost never what you want. Use
+  an arrow when you need arguments: `onClick={() => remove(id)}`.
+</Callout>
+
+## Reading the event
+
+Handlers receive a React **SyntheticEvent** — a cross-browser wrapper around the
+native event with the same API.
+
+```tsx
+function SearchBox() {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    console.log(e.target.value);
+  }
+  return <input onChange={handleChange} />;
+}
+```
+
+## Preventing defaults and bubbling
+
+```tsx
+function Form() {
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault(); // stop full-page reload
+    // ...submit logic
+  }
+  return <form onSubmit={handleSubmit}>{/* ... */}</form>;
+}
+```
+
+- `e.preventDefault()` — cancel the browser's default (form submit, link nav).
+- `e.stopPropagation()` — stop the event bubbling to parent handlers.
+
+## Events bubble through the tree
+
+React attaches a single listener at the root and replays events down to your
+handlers. A click on a child runs the child's handler, then the parent's, unless
+you stop propagation.
+
+<Callout type="info" title="Passing handlers as props">
+  A child can't reach up to its parent, so the parent gives it a callback prop
+  such as `onDelete`. The child calls `onDelete` when clicked; the parent
+  decides what happens.
+</Callout>

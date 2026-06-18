@@ -1,0 +1,49 @@
+---
+title: State Management Strategy
+summary: Categorizing state and choosing the lightest tool that fits each kind.
+track: tech-lead
+order: 4
+tags: [state, architecture, context, react-query, zustand]
+prerequisites: [tracks/mid/context-and-sharing-state]
+---
+
+Most "state management" debates dissolve once you classify _what kind_ of state
+you have. Different kinds want different tools.
+
+## Four kinds of state
+
+| Kind              | Examples                     | Tool                                 |
+| ----------------- | ---------------------------- | ------------------------------------ |
+| **Server state**  | API/DB data, lists, the user | Server Components, React Query / SWR |
+| **URL state**     | filters, tab, page, search   | `searchParams`, the router           |
+| **Local UI**      | open/closed, hover, input    | `useState` / `useReducer`            |
+| **Global client** | theme, cart, feature flags   | Context or a store (Zustand/Redux)   |
+
+## Server state isn't client state
+
+The biggest win in the App Router: most data is **server state**. Fetch it in
+Server Components and you avoid client caching, loading flags, and sync bugs
+entirely. Only cache it on the client (React Query) when you have rich client
+interactions over that data.
+
+## Put shareable state in the URL
+
+Filters, sorting, and pagination belong in `searchParams`: shareable,
+bookmarkable, survives refresh, and works with the back button — for free.
+
+## Reach for a global store sparingly
+
+Context is fine for low-frequency global values (theme, auth). For
+high-frequency or complex client state, a store like **Zustand** avoids the
+re-render-everything problem and keeps logic out of the component tree.
+
+<Callout type="warning" title="Don't default to Redux">
+  Global client state is usually the *smallest* category. Reaching for a heavy
+  global store first leads to needless boilerplate and turns server data into
+  manually-synced client state.
+</Callout>
+
+<Callout type="info" title="Decision order">
+  Ask in this order: Can it live on the server? → in the URL? → as local
+  component state? Only what's left over is true global client state.
+</Callout>

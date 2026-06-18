@@ -1,0 +1,65 @@
+---
+title: Custom Hooks and Reuse
+summary: Extracting stateful logic into composable, testable hooks.
+track: senior
+order: 6
+tags: [react, hooks, custom-hooks, patterns, reuse]
+prerequisites: [tracks/mid/useeffect-and-lifecycle]
+---
+
+A **custom hook** is a function whose name starts with `use` that calls other
+hooks. It lets you share _stateful logic_ — not state itself — between
+components.
+
+## Anatomy
+
+```tsx
+import { useState, useEffect } from "react";
+
+export function useDebouncedValue<T>(value: T, delay = 300): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+  return debounced;
+}
+```
+
+```tsx
+const debouncedQuery = useDebouncedValue(query);
+```
+
+## Each call is independent
+
+Two components calling `useDebouncedValue` get **separate** state. Hooks share
+logic, never the data — that's the key difference from a module-level variable.
+
+## Design guidelines
+
+- **Name by intent**: `useUser`, `useMediaQuery`, `useLocalStorage`.
+- **Return the minimum**: an array for positional `[value, setValue]` or an
+  object for many named values.
+- **Keep them focused**: one concern per hook; compose hooks from hooks.
+- **Respect the Rules of Hooks**: call them at the top level, unconditionally.
+
+<Callout type="warning" title="Don't wrap everything in a hook">
+  A custom hook earns its place when logic is reused or when extracting it makes
+  a component dramatically clearer. A one-off `useState` doesn't need to become
+  `useSomething`.
+</Callout>
+
+## Testing custom hooks
+
+Because they're plain functions, test them with `renderHook` from React Testing
+Library — no component shell required.
+
+```tsx
+const { result } = renderHook(() => useDebouncedValue("a"));
+```
+
+<Callout type="success" title="The reuse hierarchy">
+  Prefer composition: derive values during render → extract a custom hook for
+  reusable stateful logic → reach for a shared component when there's UI to
+  share too.
+</Callout>

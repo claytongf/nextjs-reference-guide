@@ -1,8 +1,10 @@
 # React/Next Reference
 
 The interactive **React & Next.js learning center and reference** — from Junior
-to Tech Lead. Searchable documentation, live code playgrounds, and knowledge
-tests, built on **Next.js 16** and **React 19**.
+to Tech Lead, plus dedicated **Testing** and **Security** tracks. Searchable
+documentation covering React core, hooks, the App Router, caching, testing
+strategy, and the common web vulnerabilities (with fixes), built on
+**Next.js 16** and **React 19**.
 
 > This is a work in progress, built in phases. See
 > [the build plan](#roadmap) below for what's done and what's next.
@@ -67,7 +69,8 @@ scripts/        # content + search-index build scripts (later phases)
   theme toggle, testing, Docker + CI/CD.
 - **Phase 1 — Content engine** — MDX pipeline, docs routes, sidebar/TOC.
 - **Phase 2 — Search** — build-time index + ⌘K palette.
-- **Phase 3 — Interactive learning** — live playgrounds + Junior→Tech Lead tracks.
+- **Phase 3 — Content & learning tracks** — Junior→Tech Lead lessons plus
+  Testing and Security tracks (57+ lessons); live playgrounds next.
 - **Phase 4 — Knowledge tests** — quiz runner + local progress.
 - **Phase 5 — Production hardening** — a11y, perf/caching, SEO, contributor docs.
 

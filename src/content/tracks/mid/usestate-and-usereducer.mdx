@@ -1,0 +1,79 @@
+---
+title: useState and useReducer
+summary: Managing local state, and when to graduate from useState to a reducer.
+track: mid
+order: 3
+tags: [react, hooks, usestate, usereducer, state]
+prerequisites: [tracks/junior/props-and-state]
+---
+
+`useState` is the workhorse for local state. `useReducer` is its bigger sibling
+for state with complex transitions. Both are Client Component hooks.
+
+## useState essentials
+
+```tsx
+const [value, setValue] = useState(initial);
+```
+
+### Use the updater form for sequential updates
+
+```tsx
+setCount((c) => c + 1); // correct under batching / async
+setCount(count + 1); // can drop updates if called multiple times
+```
+
+### Lazy initialization
+
+If the initial value is expensive to compute, pass a function — it runs only on
+the first render.
+
+```tsx
+const [state, setState] = useState(() => expensiveInit());
+```
+
+<Callout type="warning" title="State is immutable — replace, don't mutate">
+  Never mutate state objects or arrays in place; React compares by reference and
+  won't re-render. Create a new value:
+  `setItems((prev) => [...prev, newItem])`.
+</Callout>
+
+## When to reach for useReducer
+
+Choose a reducer when:
+
+- The next state depends on multiple sub-values, or
+- Updates form a small state machine (idle → loading → success → error), or
+- You want update logic outside the component, easy to test.
+
+```tsx
+type State = { count: number };
+type Action = { type: "inc" } | { type: "reset" };
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "inc":
+      return { count: state.count + 1 };
+    case "reset":
+      return { count: 0 };
+  }
+}
+
+const [state, dispatch] = useReducer(reducer, { count: 0 });
+dispatch({ type: "inc" });
+```
+
+<Callout type="info" title="Same power, different shape">
+  A reducer is just a pure function `(state, action) => newState`. It centralizes
+  *how* state changes; components only describe *what* happened by dispatching
+  actions. This is the same idea Redux is built on.
+</Callout>
+
+## Derive, don't duplicate
+
+If a value can be computed from existing state during render, don't store it —
+compute it. Duplicated state drifts out of sync.
+
+```tsx
+const fullName = `${first} ${last}`; // derived, not a third useState
+```

@@ -1,0 +1,62 @@
+---
+title: "use server"
+summary: Marks a function or module as a Server Action callable from the client.
+track: reference
+order: 4
+tags: [directive, server-actions, use-server, mutations]
+---
+
+The `"use server"` directive marks code as a **Server Action** — an async
+function that runs on the server but can be invoked from client code or a
+`<form action>`.
+
+## Two placements
+
+```tsx
+// 1. Inline — top of an async function
+async function createTodo(formData: FormData) {
+  "use server";
+  await db.todo.create({ data: { text: String(formData.get("text")) } });
+}
+```
+
+```tsx
+// 2. Module-level — every export becomes a Server Action
+"use server";
+export async function createTodo(formData: FormData) {
+  /* ... */
+}
+export async function deleteTodo(id: string) {
+  /* ... */
+}
+```
+
+## Calling an action
+
+```tsx
+<form action={createTodo}>
+  <input name="text" />
+  <button type="submit">Add</button>
+</form>
+```
+
+<Callout type="danger" title="A Server Action is a public endpoint">
+  Anyone can call it with any arguments. Authenticate, authorize, and validate
+  inputs inside the action itself — never rely on the UI to restrict who calls
+  it or what they pass.
+</Callout>
+
+<Callout type="info" title="Don't confuse it with server-only">
+  <code>"use server"</code> *exposes* a function to the client as an RPC
+  endpoint. The <code>server-only</code> package does the opposite — it
+  *prevents* a module from being imported into client code. They are not
+  interchangeable.
+</Callout>
+
+<Callout
+  type="warning"
+  title="Arguments and return values must be serializable"
+>
+  Inputs and outputs cross the network, so they must serialize (no functions,
+  class instances, etc.). Validate arguments with a schema before trusting them.
+</Callout>

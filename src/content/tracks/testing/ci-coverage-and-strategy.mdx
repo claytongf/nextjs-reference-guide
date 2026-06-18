@@ -1,0 +1,70 @@
+---
+title: CI, Coverage and Test Strategy
+summary: Wiring tests into CI and reading coverage without gaming it.
+track: testing
+order: 7
+tags: [testing, ci, coverage, strategy]
+prerequisites: [tracks/testing/testing-philosophy]
+---
+
+Tests only protect you if they run automatically and block bad merges. The last
+step is turning a suite into a guardrail.
+
+## The CI pipeline
+
+Run the cheap, fast checks first so failures surface quickly:
+
+<Steps>
+
+### Static checks
+
+`tsc --noEmit` and `eslint` — seconds, catch whole bug classes for free.
+
+### Unit & component tests
+
+`vitest --run --coverage` — fast, the bulk of your assertions.
+
+### End-to-end tests
+
+`playwright test` against a built app — slower, gates only critical flows.
+
+</Steps>
+
+```yaml
+# .github/workflows/ci.yml (sketch)
+- run: npm ci
+- run: npm run typecheck
+- run: npm run lint
+- run: npm run test -- --run
+- run: npm run build
+- run: npm run test:e2e
+```
+
+A red pipeline blocks merge. Keep the whole thing under a few minutes or people
+route around it.
+
+## Reading coverage honestly
+
+Coverage shows which lines _ran_, not whether they're _correct_. It's a tool to
+find untested areas, not a score to maximize.
+
+<Callout type="danger" title="Coverage targets get gamed">
+  Mandating "90% coverage" produces assertion-free tests that execute code
+  without checking anything. Aim for meaningful coverage of important paths, and
+  watch the trend, not a magic number.
+</Callout>
+
+## Fighting flakiness
+
+Flaky tests erode trust until people ignore failures. Treat a flake as a bug:
+
+- Replace fixed sleeps with condition waits.
+- Reset shared state (DB, mocks, storage) between tests.
+- Avoid test interdependence and real time/network.
+- Quarantine and fix — never `retry` your way past a real race.
+
+<Callout type="success" title="The strategy in one line">
+  Lots of fast unit/integration tests, a few high-value E2E tests, all running
+  in CI on every PR, kept fast and flake-free. That's a suite a team will
+  actually rely on.
+</Callout>

@@ -1,0 +1,81 @@
+---
+title: Security Headers and CSP
+summary: HTTP headers that harden the browser against whole classes of attacks.
+track: security
+order: 10
+tags: [security, headers, csp, nextjs, hardening]
+prerequisites: [tracks/security/xss-cross-site-scripting]
+---
+
+Security headers tell the browser to enforce protections for you. They're a
+high-leverage, low-effort layer of defense in depth.
+
+## The essential headers
+
+| Header                                | What it does                                      |
+| ------------------------------------- | ------------------------------------------------- |
+| `Content-Security-Policy`             | Restricts where scripts/styles/etc. may load from |
+| `Strict-Transport-Security`           | Forces HTTPS for future visits (HSTS)             |
+| `X-Content-Type-Options`              | `nosniff` — stops MIME-type guessing              |
+| `X-Frame-Options` / `frame-ancestors` | Prevents clickjacking via framing                 |
+| `Referrer-Policy`                     | Limits referrer leakage to other sites            |
+| `Permissions-Policy`                  | Disables unused browser features (camera, geo)    |
+
+## Setting them in Next.js
+
+Add them globally in `next.config.ts`:
+
+```ts
+const securityHeaders = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains; preload",
+  },
+  { key: "X-Frame-Options", value: "DENY" },
+];
+
+export default {
+  async headers() {
+    return [{ source: "/(.*)", headers: securityHeaders }];
+  },
+};
+```
+
+## Content Security Policy
+
+CSP is the strongest header: even if XSS injects a `<script>`, the browser
+refuses to run it unless it matches the policy. The robust approach is a
+**nonce-based** policy generated per request (in `proxy.ts`, Next.js 16's renamed
+middleware) and attached to your scripts.
+
+```ts
+// proxy.ts (sketch)
+const nonce = crypto.randomUUID();
+const csp = [
+  `default-src 'self'`,
+  `script-src 'self' 'nonce-${nonce}'`,
+  `style-src 'self' 'unsafe-inline'`,
+  `object-src 'none'`,
+  `base-uri 'self'`,
+  `frame-ancestors 'none'`,
+].join("; ");
+```
+
+<Callout type="warning" title="Avoid 'unsafe-inline' for scripts">
+  `script-src 'unsafe-inline'` defeats the purpose of CSP — inline injected
+  scripts run again. Use nonces or hashes so only your scripts execute.
+</Callout>
+
+## Verify your headers
+
+Roll out CSP with `Content-Security-Policy-Report-Only` first to catch breakage
+without blocking, then enforce. Test the result with securityheaders.com or
+Mozilla Observatory.
+
+<Callout type="success" title="Cheap insurance">
+  These headers take an afternoon to add and shut down clickjacking, protocol
+  downgrade, MIME sniffing, and much of XSS's impact. There's no reason to ship
+  without them.
+</Callout>

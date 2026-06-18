@@ -1,0 +1,60 @@
+---
+title: Communicating Technical Trade-offs
+summary: Framing decisions, managing tech debt, and writing them down.
+track: tech-lead
+order: 6
+tags: [leadership, trade-offs, tech-debt, decisions, adr]
+prerequisites: [tracks/tech-lead/architecture-and-boundaries]
+---
+
+Senior engineers solve problems; tech leads make **decisions under uncertainty**
+and bring the team along. The skill is reasoning about trade-offs explicitly and
+communicating them clearly.
+
+## There is no "best" — only trade-offs in context
+
+Every choice trades something. Name the axes out loud:
+
+- Performance vs. development speed
+- Flexibility vs. simplicity
+- Build vs. buy
+- Consistency vs. local optimization
+
+The right call depends on team size, timeline, scale, and reversibility.
+
+## Reversible vs. irreversible decisions
+
+Move fast on **reversible** decisions (a component library, a folder layout) —
+you can change them later. Slow down for **irreversible** ones (a data model, a
+public API, an auth strategy): they're expensive to undo, so invest in getting
+them right.
+
+## Tech debt is a tool, not a sin
+
+Debt taken deliberately to hit a deadline is fine — _if_ it's tracked and has a
+payoff plan. Untracked, accidental debt is the dangerous kind.
+
+<Callout type="warning" title="Make debt visible">
+  Log debt as tickets with the cost of carrying it and the cost of fixing it.
+  "We'll clean it up later" with no ticket means never.
+</Callout>
+
+## Write decisions down (ADRs)
+
+An **Architecture Decision Record** captures context, the options considered,
+the decision, and its consequences. Future engineers (and you in six months) get
+the _why_, not just the _what_.
+
+```text
+# ADR 012: Adopt Server Actions for mutations
+Context: API routes duplicate validation; forms need progressive enhancement.
+Decision: Use Server Actions for first-party mutations; Route Handlers for
+          public/webhook endpoints.
+Consequences: Less boilerplate; must enforce auth+validation in every action.
+```
+
+<Callout type="info" title="Lead with the problem">
+  When proposing a change, start with the problem and constraints, then the
+  options and trade-offs, then your recommendation. People buy into reasoning,
+  not decrees.
+</Callout>

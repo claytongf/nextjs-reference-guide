@@ -1,0 +1,68 @@
+---
+title: useEffect and Synchronization
+summary: Effects are for syncing with external systems — not for everything.
+track: mid
+order: 4
+tags: [react, hooks, useeffect, effects, lifecycle]
+prerequisites: [tracks/mid/usestate-and-usereducer]
+---
+
+`useEffect` lets a component **synchronize with an external system** —
+subscriptions, timers, non-React widgets, manual DOM, or browser APIs. It runs
+_after_ render and after the DOM is painted.
+
+```tsx
+useEffect(() => {
+  const id = setInterval(() => tick(), 1000);
+  return () => clearInterval(id); // cleanup
+}, []); // dependency array
+```
+
+## The dependency array
+
+- `[]` — run once after mount (and clean up on unmount).
+- `[a, b]` — re-run whenever `a` or `b` changes.
+- _omitted_ — run after **every** render (rarely what you want).
+
+The cleanup function runs before the next effect and on unmount. This prevents
+leaks like duplicate listeners or stale subscriptions.
+
+<Callout type="danger" title="Don't lie about dependencies">
+  Include every reactive value the effect reads. Omitting deps to "run once"
+  causes stale closures — the effect captures old props/state. Let the ESLint
+  `react-hooks/exhaustive-deps` rule guide you.
+</Callout>
+
+## You probably don't need an Effect
+
+This is the most overused hook. Skip it when:
+
+- **Transforming data for render** → compute during render instead.
+- **Responding to a user event** → put the logic in the event handler.
+- **Fetching in Next.js App Router** → fetch in a Server Component.
+
+```tsx
+// ❌ effect to derive state
+useEffect(() => setFullName(`${first} ${last}`), [first, last]);
+// ✅ just derive it
+const fullName = `${first} ${last}`;
+```
+
+## Legitimate uses
+
+```tsx
+// Subscribe to an external store / browser event
+useEffect(() => {
+  function onResize() {
+    setWidth(window.innerWidth);
+  }
+  window.addEventListener("resize", onResize);
+  return () => window.removeEventListener("resize", onResize);
+}, []);
+```
+
+<Callout type="info" title="Strict Mode runs effects twice in dev">
+  In development, React mounts, unmounts, and remounts components to surface
+  missing cleanup. If your effect breaks when run twice, the cleanup is
+  incomplete — fix that rather than disabling Strict Mode.
+</Callout>

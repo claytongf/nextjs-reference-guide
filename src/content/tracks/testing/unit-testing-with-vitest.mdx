@@ -1,0 +1,78 @@
+---
+title: Unit Testing with Vitest
+summary: Fast unit tests for pure logic — structure, assertions, and matchers.
+track: testing
+order: 2
+tags: [testing, vitest, unit, assertions]
+prerequisites: [tracks/testing/testing-philosophy]
+---
+
+**Vitest** is a fast, Vite-native test runner with a Jest-compatible API. Unit
+tests target pure functions: given input, assert output. No DOM, no network.
+
+## Anatomy of a test
+
+```ts
+import { describe, it, expect } from "vitest";
+import { formatPrice } from "./format";
+
+describe("formatPrice", () => {
+  it("formats cents as currency", () => {
+    expect(formatPrice(1299)).toBe("$12.99");
+  });
+
+  it("handles zero", () => {
+    expect(formatPrice(0)).toBe("$0.00");
+  });
+});
+```
+
+Follow **Arrange → Act → Assert**: set up inputs, run the code, check the result.
+
+## Matchers you'll use constantly
+
+```ts
+expect(value).toBe(3); // Object.is (primitives, references)
+expect(obj).toEqual({ a: 1 }); // deep equality
+expect(arr).toContain("x");
+expect(fn).toThrow("Invalid");
+expect(value).toBeNull();
+expect(promise).resolves.toBe(42); // async result
+```
+
+## Setup and teardown
+
+```ts
+import { beforeEach, afterEach, vi } from "vitest";
+
+beforeEach(() => vi.useFakeTimers());
+afterEach(() => vi.restoreAllMocks());
+```
+
+## Table-driven tests
+
+Cover many cases without repetition using `it.each`:
+
+```ts
+it.each([
+  [0, "$0.00"],
+  [50, "$0.50"],
+  [1299, "$12.99"],
+])("formats %i cents", (input, expected) => {
+  expect(formatPrice(input)).toBe(expected);
+});
+```
+
+## Running
+
+```bash
+npm run test            # watch mode
+npm run test -- --run   # single run (CI)
+npm run test -- --coverage
+```
+
+<Callout type="success" title="Pure functions are a gift">
+  Logic extracted into pure functions is trivial to test — no mocks, no setup.
+  This is a strong reason to keep business rules out of components and in plain
+  modules.
+</Callout>

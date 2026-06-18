@@ -1,0 +1,60 @@
+---
+title: Standards, Quality and Velocity
+summary: The automated guardrails that let a team move fast without breaking things.
+track: tech-lead
+order: 5
+tags: [standards, quality, ci, dx, conventions]
+prerequisites: [tracks/tech-lead/architecture-and-boundaries]
+---
+
+A tech lead scales themselves through **standards encoded as automation**.
+Anything that relies on humans remembering will eventually be forgotten — so
+make the right thing the default and the wrong thing impossible to merge.
+
+## The guardrail stack
+
+<Steps>
+
+### Type safety
+
+TypeScript in `strict` mode, validated I/O at the boundaries with a schema
+library (Zod). Types catch a whole class of bugs before runtime.
+
+### Linting & formatting
+
+ESLint for correctness rules, Prettier for formatting. Run them in a pre-commit
+hook (Husky + lint-staged) so style is never a review topic.
+
+### Tests in CI
+
+Unit + component tests on every PR, e2e on critical flows. A red pipeline blocks
+merge. Coverage is a signal, not a target.
+
+### Architectural rules as lint
+
+Encode boundaries (no UI imports in the data layer, no server-only modules in
+client code) as ESLint rules so violations fail CI automatically.
+
+</Steps>
+
+## Consistency beats cleverness
+
+Pick conventions — file naming, folder layout, data-fetching patterns — and
+document them in `AGENTS.md` / a contributing guide. A consistent codebase is
+one any team member (or AI agent) can navigate and extend.
+
+## Make reviews about substance
+
+When formatting, types, and obvious bugs are caught by machines, human review
+focuses on what matters: design, edge cases, and trade-offs. Keep PRs small and
+single-purpose to keep review fast.
+
+<Callout type="info" title="Definition of Done">
+  Agree on what "done" means — tests, types, a11y, docs, telemetry — and make as
+  much of it as possible automated and enforced, not aspirational.
+</Callout>
+
+<Callout type="success" title="Velocity is a quality outcome">
+  Teams don't go fast by skipping quality; they go fast *because* guardrails let
+  them change code confidently. Invest in the pipeline early.
+</Callout>

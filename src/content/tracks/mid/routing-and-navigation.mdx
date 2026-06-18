@@ -1,0 +1,79 @@
+---
+title: Routing and Navigation
+summary: File-based routing, dynamic segments, and client navigation in the App Router.
+track: mid
+order: 7
+tags: [nextjs, routing, app-router, navigation, link]
+prerequisites: [tracks/junior/your-first-nextjs-app]
+---
+
+In the App Router, **the filesystem is the router**. Folders under `app/` map to
+URL segments, and special files define the UI for each segment.
+
+<FileTree
+  tree={`app/
+  layout.tsx        # shared shell for everything below
+  page.tsx          # /
+  blog/
+    page.tsx        # /blog
+    [slug]/
+      page.tsx      # /blog/:slug  (dynamic segment)
+  dashboard/
+    layout.tsx      # wraps only /dashboard/*
+    page.tsx        # /dashboard`}
+/>
+
+Only a folder with a `page.tsx` becomes a routable URL.
+
+## Dynamic segments
+
+`[slug]` captures one segment, `[...slug]` captures many. Params arrive as a
+**Promise** in Next.js 16 — `await` it.
+
+```tsx
+export default async function Post({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  return <article>Post: {slug}</article>;
+}
+```
+
+<Callout type="warning" title="Next.js 16: params & searchParams are async">
+  `params` and `searchParams` are Promises now. Always `await` them (or `use()`
+  them in a Client Component). This is a breaking change from earlier versions.
+</Callout>
+
+## Linking between pages
+
+Use `<Link>` for client-side navigation — it prefetches and avoids full reloads.
+
+```tsx
+import Link from "next/link";
+<Link href={`/blog/${post.slug}`}>{post.title}</Link>;
+```
+
+## Navigating in code
+
+```tsx
+"use client";
+import { useRouter } from "next/navigation";
+
+const router = useRouter();
+router.push("/dashboard"); // navigate
+router.replace("/login"); // no history entry
+router.refresh(); // re-fetch server data for current route
+```
+
+## Reading the current URL
+
+`usePathname()`, `useSearchParams()`, and `useParams()` (all from
+`next/navigation`) give the active route info in Client Components.
+
+<Callout type="info" title="Route groups & private folders">
+  Wrap a folder in parentheses — `(marketing)` — to group routes without adding
+  a URL segment. Prefix with an underscore — `_lib` — to opt a folder out of
+  routing entirely.
+</Callout>

@@ -1,0 +1,70 @@
+---
+title: Testing Server Components and Actions
+summary: Strategies for async Server Components and Server Action mutations.
+track: testing
+order: 6
+tags: [testing, server-components, server-actions, nextjs]
+prerequisites: [tracks/testing/e2e-with-playwright]
+---
+
+Server Components and Server Actions run on the server, so the usual jsdom
+component test doesn't fully apply. Test them at the right level.
+
+## Server Actions are just functions
+
+A Server Action is an async function. Test the logic directly — call it with
+`FormData`, mock the data layer, and assert on the effects.
+
+```ts
+import { createPost } from "./actions";
+
+vi.mock("@/lib/db");
+
+it("rejects an empty title", async () => {
+  const fd = new FormData();
+  fd.set("title", "");
+  await expect(createPost(fd)).rejects.toThrow(/required/i);
+});
+
+it("creates a post and revalidates", async () => {
+  const fd = new FormData();
+  fd.set("title", "Hello");
+  await createPost(fd);
+  expect(db.post.create).toHaveBeenCalledWith({ data: { title: "Hello" } });
+});
+```
+
+<Callout type="warning" title="Test authorization, not just the happy path">
+  Because actions are public endpoints, your tests should prove they reject
+  unauthenticated and unauthorized callers — not only that valid input works.
+</Callout>
+
+## Async Server Components
+
+A Server Component is an `async` function returning JSX. You can unit-test its
+data logic, or render it once data is mocked:
+
+```tsx
+// Resolve the component (it's a promise) then assert on the tree
+const ui = await ProductPage({ params: Promise.resolve({ id: "1" }) });
+render(ui);
+expect(screen.getByRole("heading", { name: "Widget" })).toBeInTheDocument();
+```
+
+For the full server pipeline (routing, streaming, caching), prefer an **E2E
+test** — that's where Server Component behavior is most faithfully exercised.
+
+## What to test where
+
+| Target                        | Best level                   |
+| ----------------------------- | ---------------------------- |
+| Action validation/authz       | Unit (call the function)     |
+| Data-access helpers           | Unit, with a test DB or mock |
+| Client interactivity          | Component (RTL)              |
+| Full rendered route/streaming | E2E (Playwright)             |
+
+<Callout type="info" title="Push logic out of the framework">
+  Keep validation, authorization, and data rules in plain modules that actions
+  and route handlers call. Plain modules are the easiest thing to test — the
+  framework glue then needs only a thin E2E check.
+</Callout>

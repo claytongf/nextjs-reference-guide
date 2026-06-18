@@ -1,0 +1,60 @@
+---
+title: A Testing Philosophy
+summary: What to test, the testing trophy, and writing tests that don't slow you down.
+track: testing
+order: 1
+tags: [testing, strategy, philosophy, trophy]
+prerequisites: [tracks/junior/thinking-in-components]
+---
+
+Tests exist to give you **confidence to change code**. A good suite catches real
+regressions, runs fast, and rarely breaks for the wrong reason. A bad one breaks
+on every refactor and gets ignored.
+
+## The Testing Trophy
+
+For frontend apps, weight your suite like a trophy, not a pyramid:
+
+```text
+        /‾‾‾‾‾‾‾\     End-to-end   — few, critical user journeys
+       (  E2E    )
+      /-----------\   Integration  — the bulk; components + their collaborators
+     ( Integration )
+      \-----------/
+       ( Unit )       Unit          — pure logic, utils, hooks
+        \---/
+       [ Static ]     Static        — TypeScript + ESLint (free, always on)
+```
+
+**Integration tests** give the most confidence per line: they exercise several
+units together the way users actually hit them.
+
+## The guiding principle
+
+> The more your tests resemble the way your software is used, the more
+> confidence they give you. — Kent C. Dodds
+
+So test **behavior, not implementation**. Assert what the user sees and can do,
+not which functions were called or what the internal state is.
+
+<Callout type="danger" title="Avoid testing implementation details">
+  Tests that assert on internal state, private methods, or component instances
+  break whenever you refactor — even when behavior is unchanged. They cost more
+  than they protect. Query the DOM the way a user would instead.
+</Callout>
+
+## What to test (and what to skip)
+
+- ✅ Business logic, edge cases, error paths, accessibility-critical flows.
+- ✅ Bugs you fix — add a test so they stay fixed (regression tests).
+- ⚠️ Third-party libraries — trust they tested themselves.
+- ❌ Trivial getters, framework internals, exact markup/snapshots of everything.
+
+<Callout type="info" title="Tests are code too">
+  Keep them readable: arrange–act–assert, descriptive names ("disables submit
+  while saving"), and no logic in the test itself. A test you can't trust is
+  worse than no test.
+</Callout>
+
+This project uses **Vitest** + React Testing Library for unit/integration and
+**Playwright** for end-to-end — the stack the rest of this track covers.

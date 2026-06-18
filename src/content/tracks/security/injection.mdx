@@ -1,0 +1,73 @@
+---
+title: Injection (SQL, NoSQL, Command)
+summary: Untrusted input changing the meaning of a query or command — and the fix.
+track: security
+order: 4
+tags: [security, injection, sql, parameterized-queries]
+prerequisites: [tracks/security/security-mindset]
+---
+
+**Injection** happens when untrusted input is concatenated into a command — SQL,
+a shell command, a NoSQL filter — and changes its _structure_, not just its data.
+
+## SQL injection
+
+```ts
+// ❌ string interpolation — classic SQL injection
+const user = await db.query(`SELECT * FROM users WHERE email = '${email}'`);
+// email = "' OR '1'='1" → returns every user
+// email = "'; DROP TABLE users;--" → destroys data
+```
+
+### The fix: parameterized queries
+
+Send the query and the values separately so the database treats input as _data_,
+never as SQL.
+
+```ts
+// ✅ parameterized — input can never alter the query structure
+await db.query("SELECT * FROM users WHERE email = $1", [email]);
+
+// ✅ or an ORM/query builder, which parameterizes for you
+await prisma.user.findUnique({ where: { email } });
+```
+
+## NoSQL injection
+
+Object-shaped input can smuggle operators:
+
+```ts
+// ❌ if `req.body.password` is { "$ne": null }, this matches any password
+db.users.findOne({ email, password });
+```
+
+Validate that inputs are the expected primitive type before querying:
+
+```ts
+import { z } from "zod";
+const { email, password } = z
+  .object({ email: z.string().email(), password: z.string() })
+  .parse(input); // rejects objects/operators
+```
+
+## Command injection
+
+Never build shell strings from user input.
+
+```ts
+// ❌ exec(`convert ${userFile} out.png`)  → "; rm -rf /"
+import { execFile } from "node:child_process";
+execFile("convert", [userFile, "out.png"]); // ✅ args passed as an array
+```
+
+<Callout type="success" title="The universal cure: separate code from data">
+  Every injection class has the same fix — keep the *command* fixed and pass
+  *input* as parameters/arguments, never by string concatenation. Add schema
+  validation at the boundary so only well-typed values get through.
+</Callout>
+
+<Callout type="warning" title="Validate, then parameterize">
+  Validation (Zod) and parameterization are complementary: validation rejects
+  garbage early; parameterization guarantees even valid-looking input can't
+  change query structure. Use both.
+</Callout>

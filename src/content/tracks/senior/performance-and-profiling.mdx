@@ -1,0 +1,66 @@
+---
+title: Performance and Profiling
+summary: A measurement-first workflow for fixing slow React and Next.js apps.
+track: senior
+order: 7
+tags: [react, performance, profiling, web-vitals, optimization]
+prerequisites: [tracks/senior/rendering-and-reconciliation]
+---
+
+Performance work is a loop: **measure → find the bottleneck → fix → measure
+again.** Optimizing without data usually adds complexity for no gain.
+
+## Measure first
+
+- **React DevTools Profiler** — record an interaction; find components that
+  render too often or too long.
+- **Lighthouse / Web Vitals** — LCP, INP, CLS for real user experience.
+- **`next build`** — bundle sizes and per-route first-load JS.
+
+## The common bottlenecks
+
+<Steps>
+
+### Excessive re-renders
+
+A parent re-renders a heavy subtree on every keystroke. Fix by moving state
+down, passing children, or `React.memo`.
+
+### Large client bundles
+
+Too much shipped JavaScript. Keep components on the server, `dynamic()`-import
+heavy client widgets, and trim dependencies.
+
+### Unvirtualized long lists
+
+Rendering thousands of rows. Virtualize so only visible rows mount.
+
+### Waterfalls
+
+Sequential `await`s that could run in parallel. Use `Promise.all`, or start
+fetches earlier and pass promises down.
+
+</Steps>
+
+## Rendering on the server is the biggest lever
+
+In Next.js, the cheapest client work is the work you never ship. Default to
+Server Components, push `"use client"` to the leaves, and stream with Suspense
+so the page is interactive sooner.
+
+```tsx
+// Heavy, client-only widget loaded on demand
+import dynamic from "next/dynamic";
+const Chart = dynamic(() => import("./chart"), { ssr: false });
+```
+
+## Improving Core Web Vitals
+
+- **LCP** — optimize the hero image (`next/image`), preconnect, server-render.
+- **INP** — break up long tasks; use transitions for non-urgent updates.
+- **CLS** — reserve space for images/ads; avoid layout-shifting fonts.
+
+<Callout type="danger" title="Premature optimization is a real cost">
+  Memoizing, splitting, and caching all add complexity and bugs. Earn each
+  optimization with a profile that shows it matters.
+</Callout>

@@ -1,0 +1,90 @@
+---
+title: JSX in Depth
+summary: How JSX maps to JavaScript, and the rules that trip up beginners.
+track: junior
+order: 4
+tags: [react, jsx, rendering, basics]
+prerequisites: [tracks/junior/what-is-react]
+---
+
+JSX is **syntax sugar** for function calls. It is not HTML, and it is not a
+template language — the compiler turns every tag into a plain JavaScript call
+that returns a description of the UI.
+
+```tsx
+const element = <h1 className="title">Hello</h1>;
+
+// compiles to roughly:
+const element = jsx("h1", { className: "title", children: "Hello" });
+```
+
+Because it is JavaScript, the value of a JSX expression is just an object. You
+can store it in a variable, return it from a function, or put it in an array.
+
+## The rules that trip people up
+
+<Steps>
+
+### One root element
+
+A component must return a single parent. Wrap siblings in a `<Fragment>` (or its
+shorthand `<>...</>`) so you don't add an extra DOM node.
+
+```tsx
+return (
+  <>
+    <Header />
+    <Main />
+  </>
+);
+```
+
+### `className`, not `class`
+
+`class` is a reserved word in JavaScript, so JSX uses `className`. Likewise
+`htmlFor` instead of `for`, and event props are camelCase: `onClick`,
+`onChange`.
+
+### Embed expressions with `{}`
+
+Curly braces drop you back into JavaScript. Anything that evaluates to a value
+works; statements (`if`, `for`) do not.
+
+```tsx
+<p>Total: {price * quantity}</p>
+<p>{user ? `Hi ${user.name}` : "Welcome"}</p>
+```
+
+### Close every tag
+
+JSX is strict XML: `<br />`, `<img />`, and `<input />` must self-close.
+
+</Steps>
+
+## What renders and what doesn't
+
+`null`, `undefined`, `false`, and `true` render **nothing**. This makes
+conditional rendering clean — but watch out for the classic bug below.
+
+<Callout type="warning" title="The `0 && ...` trap">
+  `{count && <Badge />}` renders the number `0` when `count` is `0`, because `0`
+  is falsy but still a valid React child. Prefer an explicit boolean: `
+  {count > 0 && <Badge />}`.
+</Callout>
+
+## Spreading props
+
+You can forward a whole object of props with the spread operator — useful for
+wrapper components, but be deliberate about what you pass through.
+
+```tsx
+function Button(props: React.ComponentProps<"button">) {
+  return <button className="btn" {...props} />;
+}
+```
+
+<Callout type="info" title="Mental model">
+  Every time you write a tag, you are calling a function and getting back a
+  lightweight object. React later compares these objects to decide what to
+  change in the real DOM.
+</Callout>

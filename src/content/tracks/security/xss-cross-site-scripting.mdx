@@ -1,0 +1,87 @@
+---
+title: Cross-Site Scripting (XSS)
+summary: How injected scripts happen in React apps — and how to prevent them.
+track: security
+order: 2
+tags: [security, xss, sanitization, csp]
+prerequisites: [tracks/security/security-mindset]
+---
+
+**XSS** is when an attacker gets their JavaScript to run in another user's
+browser, letting them steal sessions, keystrokes, or act as that user.
+
+## React escapes by default
+
+Good news: React escapes any value you interpolate into JSX, so the classic
+injection is neutralized automatically.
+
+```tsx
+const name = "<img src=x onerror=alert(1)>";
+<p>{name}</p>; // rendered as text, NOT executed — safe
+```
+
+## Where it goes wrong
+
+<Steps>
+
+### dangerouslySetInnerHTML
+
+Bypasses escaping entirely. If the HTML contains untrusted input, you've opened
+the door.
+
+```tsx
+// ❌ DANGEROUS if `comment` came from a user
+<div dangerouslySetInnerHTML={{ __html: comment }} />
+```
+
+### javascript: URLs
+
+A user-supplied `href` like `javascript:stealCookies()` executes on click.
+
+```tsx
+// ❌ if `url` is user-controlled
+<a href={url}>Link</a>
+```
+
+### Injecting into scripts / refs to the DOM
+
+Writing untrusted data into `<script>`, inline event handlers, or via
+`ref.current.innerHTML`.
+
+</Steps>
+
+## How to fix it
+
+```tsx
+import DOMPurify from "isomorphic-dompurify";
+
+// ✅ sanitize before rendering raw HTML
+<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(comment) }} />;
+```
+
+- **Avoid `dangerouslySetInnerHTML`.** If you must render rich text, sanitize
+  with a vetted library (DOMPurify) using an allowlist.
+- **Validate URLs.** Only allow `http:`/`https:`/`mailto:` schemes; reject
+  `javascript:` and `data:`.
+
+```tsx
+function safeHref(url: string) {
+  try {
+    const u = new URL(url, "https://example.com");
+    return ["http:", "https:", "mailto:"].includes(u.protocol) ? url : "#";
+  } catch {
+    return "#";
+  }
+}
+```
+
+- **Add a Content Security Policy** as a second line of defense, so injected
+  scripts can't run even if one slips through (see Security Headers & CSP).
+- **Store session tokens in `HttpOnly` cookies** so XSS can't read them from
+  JavaScript.
+
+<Callout type="danger" title="The name says it all">
+  `dangerouslySetInnerHTML` is deliberately verbose to make you stop and think.
+  Treat every use as a security review item, and never feed it unsanitized
+  input.
+</Callout>

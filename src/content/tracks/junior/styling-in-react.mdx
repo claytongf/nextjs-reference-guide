@@ -1,0 +1,62 @@
+---
+title: Styling in React
+summary: From inline styles to Tailwind and CSS Modules — the practical options.
+track: junior
+order: 10
+tags: [react, css, styling, tailwind]
+prerequisites: [tracks/junior/jsx-in-depth]
+---
+
+React doesn't dictate how you style. Here are the options you'll meet, from
+simplest to most scalable.
+
+## Inline styles
+
+The `style` prop takes an object with camelCase properties. Good for dynamic,
+computed values; bad for anything reusable.
+
+```tsx
+<div style={{ color: "red", paddingTop: 8 }} />
+```
+
+## CSS classes and CSS Modules
+
+Plain classes with `className`. **CSS Modules** (`*.module.css`) scope class
+names locally so they can't collide across files.
+
+```tsx
+import styles from "./card.module.css";
+<div className={styles.card} />;
+```
+
+## Tailwind CSS (utility-first)
+
+Compose small utility classes directly in markup. No context-switching to a
+separate file, and dead styles never accumulate. This project uses Tailwind v4.
+
+```tsx
+<button className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+  Save
+</button>
+```
+
+## Conditional classes
+
+Build class strings from state. A small helper keeps it readable.
+
+```tsx
+import { cn } from "@/lib/utils"; // clsx + tailwind-merge
+
+<div className={cn("rounded p-4", active && "ring-2 ring-blue-500")} />;
+```
+
+<Callout type="info" title="Picking an approach">
+  For app work, a utility framework (Tailwind) or CSS Modules scales best.
+  Reserve inline styles for truly dynamic values like a computed width or a
+  color from data.
+</Callout>
+
+<Callout type="success" title="Design tokens beat magic numbers">
+  Drive colors, spacing, and font sizes from a shared theme (CSS variables or
+  Tailwind config) so the whole app stays consistent and theming is trivial.
+</Callout>

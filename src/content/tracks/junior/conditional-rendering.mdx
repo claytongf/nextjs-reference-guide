@@ -1,0 +1,61 @@
+---
+title: Conditional Rendering
+summary: Showing different UI based on state with ternaries, &&, and early returns.
+track: junior
+order: 8
+tags: [react, conditional, rendering, patterns]
+prerequisites: [tracks/junior/jsx-in-depth]
+---
+
+Because JSX is JavaScript, you render conditionally using ordinary expressions.
+There are three common patterns.
+
+## Ternary — choose between two
+
+```tsx
+<div>{isLoggedIn ? <Dashboard /> : <LoginForm />}</div>
+```
+
+## `&&` — render or nothing
+
+```tsx
+{
+  hasError && <p className="error">{message}</p>;
+}
+```
+
+<Callout type="warning" title="Guard against falsy numbers">
+  `{count && <List />}` renders `0` when `count` is `0`. Coerce to a boolean: `
+  {count > 0 && <List />}` or `{Boolean(count) && <List />}`.
+</Callout>
+
+## Early return — skip the whole render
+
+For top-level branching, return early. This keeps the main JSX flat and
+readable.
+
+```tsx
+function Profile({ user }: { user?: User }) {
+  if (!user) return <Spinner />;
+  return <h1>{user.name}</h1>;
+}
+```
+
+## Handling many states
+
+UI usually has more than two states: loading, error, empty, and success. Model
+them explicitly rather than nesting ternaries.
+
+```tsx
+function Result({ status, data }: Props) {
+  if (status === "loading") return <Spinner />;
+  if (status === "error") return <Error />;
+  if (data.length === 0) return <Empty />;
+  return <List items={data} />;
+}
+```
+
+<Callout type="success" title="Keep conditions readable">
+  If a ternary spans many lines or nests, extract it into a variable or a small
+  component. Deeply nested `? :` chains are a top source of bugs.
+</Callout>

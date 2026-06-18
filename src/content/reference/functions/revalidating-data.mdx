@@ -1,0 +1,59 @@
+---
+title: revalidatePath() & revalidateTag()
+summary: Invalidate cached data on demand after a mutation.
+track: reference
+order: 3
+tags: [function, cache, revalidate, mutations]
+---
+
+After a write you tell Next.js to refresh cached data so the UI reflects the
+change. Both functions are called from Server Actions or Route Handlers.
+
+## revalidatePath
+
+Invalidate the cache for a specific route.
+
+```tsx
+import { revalidatePath } from "next/cache";
+
+export async function publish(formData: FormData) {
+  "use server";
+  await savePost(formData);
+  revalidatePath("/posts"); // refresh the list page
+  revalidatePath("/posts/[slug]", "page"); // a dynamic route
+}
+```
+
+## revalidateTag
+
+Invalidate everything tagged with a label — more targeted than a path. Tag data
+when you fetch or cache it, then revalidate by tag on write.
+
+```tsx
+import { revalidateTag } from "next/cache";
+
+// when caching:
+async function getPosts() {
+  "use cache";
+  cacheTag("posts");
+  return db.post.findMany();
+}
+
+// after a mutation:
+revalidateTag("posts");
+```
+
+<Callout type="info" title="Path vs tag">
+  Use <code>revalidatePath</code> when you know exactly which URL changed. Use
+  <code>revalidateTag</code> when one mutation affects many pages that share the
+  same data — tag once, invalidate everywhere.
+</Callout>
+
+<Callout
+  type="warning"
+  title="Revalidation is not instant for the current user"
+>
+  These mark the cache stale so the *next* request re-fetches. To reflect the
+  change immediately in the current navigation, follow with
+  <code>redirect()</code> or <code>router.refresh()</code>.
+</Callout>

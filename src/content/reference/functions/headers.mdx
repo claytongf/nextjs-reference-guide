@@ -1,0 +1,41 @@
+---
+title: headers()
+summary: Read incoming HTTP request headers from Server Components, Actions, and Route Handlers.
+track: reference
+order: 2
+tags: [function, headers, request, async]
+---
+
+`headers()` returns the incoming request headers. Like `cookies()`, it is
+**async** in Next.js 16 — `await` it. It is read-only.
+
+```tsx
+import { headers } from "next/headers";
+
+export default async function Page() {
+  const headerList = await headers();
+  const userAgent = headerList.get("user-agent");
+  return <p>UA: {userAgent}</p>;
+}
+```
+
+## Common uses
+
+- Reading `authorization`, `user-agent`, or a custom header.
+- Getting the request `host`/`origin` for absolute URLs or origin checks.
+
+```tsx
+const host = (await headers()).get("host");
+```
+
+<Callout type="warning" title="Reading headers forces dynamic rendering">
+  Like cookies, accessing request headers makes the route depend on the request,
+  opting it out of static rendering. Keep header reads outside any
+  <code>"use cache"</code> scope.
+</Callout>
+
+<Callout type="info" title="Don't trust forwarded headers blindly">
+  Headers like <code>x-forwarded-for</code> can be spoofed unless set by a proxy
+  you control. Verify your infrastructure before using them for security
+  decisions.
+</Callout>

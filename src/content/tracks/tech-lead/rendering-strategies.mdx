@@ -1,0 +1,73 @@
+---
+title: Choosing a Rendering Strategy
+summary: Static, dynamic, ISR, PPR, and Cache Components — picking per route.
+track: tech-lead
+order: 2
+tags: [nextjs, rendering, ssr, ssg, isr, ppr, caching]
+prerequisites: [tracks/senior/caching-in-next-16]
+---
+
+A tech lead's job is to match each route to the right rendering strategy. In the
+App Router the choice is per-segment, driven by how you fetch and cache.
+
+## The spectrum
+
+| Strategy          | When it renders                       | Best for                       |
+| ----------------- | ------------------------------------- | ------------------------------ |
+| **Static (SSG)**  | At build / cached indefinitely        | Marketing, docs, blogs         |
+| **ISR**           | Static, revalidated on a timer/tag    | Catalogs, content that changes |
+| **Dynamic (SSR)** | On every request                      | Personalized, real-time data   |
+| **PPR**           | Static shell + streamed dynamic holes | Pages that are mostly static   |
+| **Client (CSR)**  | In the browser                        | Highly interactive widgets     |
+
+## What makes a route dynamic
+
+Reading request-time data opts a route out of static rendering: `cookies()`,
+`headers()`, `searchParams`, or `connection()`. If you don't touch those and
+your data is cacheable, the route can be static.
+
+## Partial Prerendering (PPR)
+
+PPR serves a **static shell instantly** and streams the dynamic parts inside
+Suspense boundaries — the best of static and dynamic in one response.
+
+```tsx
+export default function Page() {
+  return (
+    <>
+      <StaticHero /> {/* prerendered */}
+      <Suspense fallback={<Skel />}>
+        <PersonalizedFeed /> {/* streamed per request */}
+      </Suspense>
+    </>
+  );
+}
+```
+
+## Cache Components & `use cache` (Next.js 16)
+
+The `use cache` directive marks a function or component as cacheable; pair it
+with `cacheLife` (freshness) and `cacheTag` (targeted invalidation). This makes
+caching explicit and composable instead of implicit.
+
+```tsx
+async function getProducts() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("products");
+  return db.product.findMany();
+}
+```
+
+Invalidate on write with `revalidateTag("products")` or `updateTag(...)`.
+
+<Callout type="info" title="Decision heuristic">
+  Start static. Add ISR/tags when content changes on a schedule. Go dynamic only
+  for genuinely per-request data — and even then, isolate it behind Suspense so
+  the rest of the page stays fast (PPR).
+</Callout>
+
+<Callout type="warning" title="Personalization ≠ whole page dynamic">
+  A single personalized widget shouldn't force the entire page to render per
+  request. Keep the shell static and stream the personalized slice.
+</Callout>

@@ -1,0 +1,59 @@
+---
+title: Dependencies and Supply Chain
+summary: Most of your code is other people's — keep it patched and trustworthy.
+track: security
+order: 9
+tags: [security, dependencies, supply-chain, npm, audit]
+prerequisites: [tracks/security/security-mindset]
+---
+
+A typical app ships far more third-party code than first-party. "Vulnerable and
+outdated components" is an OWASP Top 10 risk because every dependency is code you
+run but didn't write.
+
+## Know and patch what you depend on
+
+```bash
+npm audit                 # report known vulnerabilities
+npm audit fix             # apply safe fixes
+npm outdated              # see what's behind
+```
+
+Automate it: enable **Dependabot** or **Renovate** to open PRs for updates, and
+run `npm audit` in CI so a critical advisory fails the build.
+
+## Lockfiles and reproducible installs
+
+```bash
+npm ci   # installs exactly the lockfile — use this in CI/Docker
+```
+
+Commit your lockfile. It pins the entire transitive tree so builds are
+reproducible and a sub-dependency can't silently change under you.
+
+<Callout type="warning" title="Typosquatting & malicious packages">
+  Attackers publish packages with names close to popular ones (`react-dom` vs
+  `reactdom`), or hijack abandoned ones. Double-check names, watch for packages
+  with no history or sudden ownership changes, and be wary of install scripts.
+</Callout>
+
+## Reduce the attack surface
+
+- **Fewer dependencies.** Each one is risk, weight, and maintenance. Can a few
+  lines of your own replace a micro-package?
+- **Prefer well-maintained, popular libraries** with active security response.
+- **Pin and review** major bumps; read changelogs for breaking/security notes.
+
+## Build-pipeline integrity
+
+Your CI/CD and build tooling are part of the supply chain too.
+
+- Pin GitHub Actions to commit SHAs, not mutable tags.
+- Scope CI tokens to least privilege; never echo secrets in logs.
+- Generate an **SBOM** and consider provenance/signing for releases.
+
+<Callout type="info" title="Defense in depth here too">
+  A strong CSP, server-only secrets, and least-privilege tokens all limit the
+  damage a compromised dependency can do. Patching is the first line;
+  containment is the backstop.
+</Callout>

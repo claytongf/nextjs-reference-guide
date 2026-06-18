@@ -1,0 +1,86 @@
+---
+title: Authorization and Data Exposure
+summary: Broken access control, IDOR, and not leaking data across the client boundary.
+track: security
+order: 6
+tags: [security, authorization, access-control, idor, data-exposure]
+prerequisites: [tracks/security/authentication-and-sessions]
+---
+
+**Authorization** answers "are you allowed to do this?". Broken access control is
+the #1 risk on the OWASP Top 10 — and it's especially easy to get wrong in apps
+that mix server and client code.
+
+## IDOR — the classic broken access control
+
+If you fetch by an id from the request without checking ownership, any user can
+read anyone's data by changing the number.
+
+```ts
+// ❌ trusts that the id belongs to the caller
+export async function getInvoice(id: string) {
+  "use server";
+  return db.invoice.findUnique({ where: { id } });
+}
+```
+
+```ts
+// ✅ scope every query to the authenticated user
+export async function getInvoice(id: string) {
+  "use server";
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Unauthorized");
+  const invoice = await db.invoice.findFirst({
+    where: { id, ownerId: user.id }, // ownership enforced in the query
+  });
+  if (!invoice) throw new Error("Not found");
+  return invoice;
+}
+```
+
+<Callout
+  type="danger"
+  title="Authorize in every Server Action and Route Handler"
+>
+  Each one is a public endpoint. A check in the UI (hiding a button) does
+  nothing. Re-verify authn + authz inside the function itself, close to the
+  data.
+</Callout>
+
+## Don't leak data across the client boundary
+
+In the App Router it's easy to fetch a full record on the server and pass it to a
+Client Component — shipping fields (password hashes, internal flags, other
+users' data) straight to the browser.
+
+```tsx
+// ❌ passes the whole user, including secrets, to the client
+<Profile user={await db.user.findUnique({ where: { id } })} />
+```
+
+```tsx
+// ✅ select only what the client needs (a DTO)
+const safe = await db.user.findUnique({
+  where: { id },
+  select: { id: true, name: true, avatarUrl: true },
+});
+<Profile user={safe} />;
+```
+
+<Callout type="warning" title="Use server-only and tainting">
+  Mark data-access modules with the `server-only` package so they can't be
+  imported into client code. Next.js also offers `taintObjectReference` /
+  `taintUniqueValue` to make React throw if a tainted secret is ever passed to
+  the client.
+</Callout>
+
+## Defense in depth
+
+Enforce access control at multiple layers: in the action, in the data query
+(`where: { ownerId }`), and ideally in the database (row-level security). Default
+to deny — if a check is missing, the operation should fail, not succeed.
+
+<Callout type="info" title="Centralize the rules">
+  Put authorization logic in one place (a policy/`can()` helper) and call it
+  everywhere, rather than scattering ad-hoc `if` checks that drift apart.
+</Callout>

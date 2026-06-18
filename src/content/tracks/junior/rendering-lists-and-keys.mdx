@@ -1,0 +1,62 @@
+---
+title: Rendering Lists and Keys
+summary: Turning arrays into UI with map, and why every list needs a stable key.
+track: junior
+order: 7
+tags: [react, lists, keys, map]
+prerequisites: [tracks/junior/jsx-in-depth]
+---
+
+To render a collection, map an array to an array of elements. JSX renders arrays
+of children automatically.
+
+```tsx
+function UserList({ users }: { users: { id: string; name: string }[] }) {
+  return (
+    <ul>
+      {users.map((user) => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## Why keys matter
+
+React uses the `key` to match elements between renders. With stable keys it can
+tell _which_ item moved, was added, or removed — so it updates the minimum and
+preserves component state (input focus, scroll, animations).
+
+<Callout
+  type="danger"
+  title="Never use the array index as a key for dynamic lists"
+>
+  `key={index}` breaks when items are reordered, inserted, or deleted: React
+  reuses the wrong DOM node, so state and inputs attach to the wrong row. Use a
+  stable id that belongs to the data. Index is only safe for a static,
+  never-reordered list.
+</Callout>
+
+## Keys must be unique among siblings
+
+A key only needs to be unique within its list, not globally. It is a hint to
+React, not a prop — your component can't read `props.key`.
+
+## Filtering, sorting, transforming
+
+Because it's plain JavaScript, chain array methods before mapping:
+
+```tsx
+{
+  products
+    .filter((p) => p.inStock)
+    .sort((a, b) => a.price - b.price)
+    .map((p) => <ProductCard key={p.id} product={p} />);
+}
+```
+
+<Callout type="info" title="Empty states">
+  Handle the empty case explicitly — `{items.length === 0 ? <Empty /> : items.map(...)}` —
+  so users see a helpful message instead of a blank screen.
+</Callout>

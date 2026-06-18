@@ -1,0 +1,61 @@
+---
+title: "Memoization: memo, useMemo, useCallback"
+summary: What memoization does, when it helps, and when it just adds noise.
+track: mid
+order: 10
+tags: [react, performance, usememo, usecallback, memo]
+prerequisites: [tracks/mid/usestate-and-usereducer]
+---
+
+Memoization caches a result so React can skip redundant work. There are three
+tools, and they solve related but distinct problems.
+
+## `useMemo` — cache a computed value
+
+Recompute only when dependencies change. Use it for genuinely expensive
+calculations.
+
+```tsx
+const sorted = useMemo(
+  () => items.slice().sort((a, b) => a.price - b.price),
+  [items],
+);
+```
+
+## `useCallback` — cache a function identity
+
+Returns the same function reference between renders, so memoized children don't
+re-render and effects don't re-fire.
+
+```tsx
+const handleSelect = useCallback((id: string) => setSelected(id), []);
+```
+
+## `React.memo` — skip re-rendering a component
+
+Wraps a component so it only re-renders when its props change by reference.
+
+```tsx
+const Row = React.memo(function Row({ item }: { item: Item }) {
+  return <li>{item.name}</li>;
+});
+```
+
+<Callout type="warning" title="Memoization is not free">
+  Each of these adds memory and comparison cost. Sprinkling `useMemo` everywhere
+  often makes code slower and harder to read. Measure with the React Profiler
+  first — optimize the components that actually re-render too often.
+</Callout>
+
+## When it actually helps
+
+- A child is wrapped in `React.memo` and you pass it a function or object prop →
+  `useCallback` / `useMemo` keep that prop stable so the memo works.
+- A computation is measurably expensive (large sorts, heavy parsing).
+- A value feeds a dependency array and must stay referentially stable.
+
+<Callout type="info" title="The React Compiler changes the calculus">
+  React's new compiler auto-memoizes for you, removing most manual `useMemo`/
+  `useCallback`. Where it's enabled, prefer clear code and let the compiler
+  optimize. Until then, memoize deliberately, guided by profiling.
+</Callout>

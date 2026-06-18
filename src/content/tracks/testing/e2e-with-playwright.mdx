@@ -1,0 +1,65 @@
+---
+title: End-to-End Testing with Playwright
+summary: Driving a real browser through critical user journeys.
+track: testing
+order: 5
+tags: [testing, playwright, e2e, browser]
+prerequisites: [tracks/testing/component-testing-rtl]
+---
+
+**Playwright** drives a real browser (Chromium, Firefox, WebKit) against your
+running app. E2E tests give the highest confidence — they exercise routing,
+server rendering, the network, and the database together — but they're slower,
+so keep them few and focused on critical journeys.
+
+## A test
+
+```ts
+import { test, expect } from "@playwright/test";
+
+test("user can search the docs", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /search/i }).click();
+  await page.getByPlaceholder("Search").fill("server components");
+  await page.getByRole("option", { name: /server.*client/i }).click();
+  await expect(page).toHaveURL(/server-and-client-components/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+});
+```
+
+## Locators and auto-waiting
+
+Playwright locators **auto-wait** for elements to be actionable — no manual
+sleeps. Prefer role/label locators, same as RTL, so tests stay accessible and
+robust.
+
+```ts
+page.getByRole("button", { name: "Save" });
+page.getByLabel("Email");
+await expect(locator).toBeVisible(); // retries until true or timeout
+```
+
+<Callout type="danger" title="Never use fixed sleeps">
+  `await page.waitForTimeout(2000)` is the #1 cause of flaky, slow suites. Wait
+  for a *condition* (`toBeVisible`, `toHaveURL`) instead — Playwright retries
+  automatically.
+</Callout>
+
+## Make E2E reliable
+
+- **Isolate data** — seed/reset state per test; don't depend on prod data.
+- **Test journeys, not pages** — login → add to cart → checkout, end to end.
+- **Stabilize auth** — reuse a stored auth state instead of logging in each test.
+- **Run in CI** across browsers; capture trace/video on failure for debugging.
+
+```bash
+npm run test:e2e
+npx playwright test --ui   # interactive debugging
+npx playwright show-trace  # inspect a failed run
+```
+
+<Callout type="info" title="The right amount of E2E">
+  Cover the handful of flows where a regression would be a real incident
+  (sign-up, payment, core CRUD). Push everything else down to faster integration
+  tests.
+</Callout>

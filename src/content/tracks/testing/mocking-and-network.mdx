@@ -1,0 +1,72 @@
+---
+title: Mocking and Network Requests
+summary: Faking modules, timers, and HTTP with vi.mock and MSW.
+track: testing
+order: 4
+tags: [testing, mocking, msw, vitest, async]
+prerequisites: [tracks/testing/component-testing-rtl]
+---
+
+Tests must be deterministic — no real network, no real clock. You replace those
+dependencies with controllable fakes.
+
+## Mocking functions and modules
+
+```ts
+import { vi } from "vitest";
+
+const onSave = vi.fn();
+onSave("draft");
+expect(onSave).toHaveBeenCalledWith("draft");
+
+// Mock a whole module
+vi.mock("./analytics", () => ({ track: vi.fn() }));
+```
+
+## Controlling time
+
+```ts
+vi.useFakeTimers();
+doThingAfter(1000);
+vi.advanceTimersByTime(1000); // fast-forward
+vi.useRealTimers();
+```
+
+## Mock the network at the boundary with MSW
+
+**Mock Service Worker (MSW)** intercepts real `fetch` calls at the network
+layer, so your code under test stays untouched — it thinks it's hitting a real
+API. This is far more realistic than stubbing `fetch`.
+
+```ts
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
+
+const server = setupServer(
+  http.get("/api/user", () => HttpResponse.json({ id: "1", name: "Ada" })),
+);
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+```
+
+Override a handler per-test to exercise error paths:
+
+```ts
+server.use(
+  http.get("/api/user", () => new HttpResponse(null, { status: 500 })),
+);
+// assert the component shows its error state
+```
+
+<Callout type="warning" title="Mock at the edge, not the middle">
+  Prefer mocking the network (MSW) over mocking your own functions. The more
+  internal you mock, the less your test proves. Real modules + a fake boundary =
+  realistic coverage.
+</Callout>
+
+<Callout type="info" title="Reset between tests">
+  Always reset mocks/handlers (`afterEach`) so state doesn't leak between tests
+  and cause order-dependent flakiness.
+</Callout>
