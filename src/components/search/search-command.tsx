@@ -99,7 +99,7 @@ export function SearchCommand() {
       >
         <Search className="h-4 w-4" />
         <span className="hidden sm:inline">Search…</span>
-        <kbd className="border-border bg-muted hidden rounded border px-1.5 font-mono text-xs sm:inline">
+        <kbd className="border-border bg-muted text-foreground hidden rounded border px-1.5 font-mono text-xs sm:inline">
           ⌘K
         </kbd>
       </button>

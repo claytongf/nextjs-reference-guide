@@ -29,7 +29,9 @@ const withMDX = createMDX({
       [
         "rehype-pretty-code",
         {
-          theme: { light: "github-light", dark: "github-dark" },
+          // github-light-high-contrast meets WCAG AA on the light code
+          // background (plain github-light's red keyword token does not).
+          theme: { light: "github-light-high-contrast", dark: "github-dark" },
           keepBackground: false,
         },
       ],
