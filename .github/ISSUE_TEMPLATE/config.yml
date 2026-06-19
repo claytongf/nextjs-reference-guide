@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Contributing guide
+    url: https://github.com/claytongf/nextjs-reference-guide/blob/main/CONTRIBUTING.md
+    about: How to add lessons and quizzes, and run the project checks.

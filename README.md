@@ -59,6 +59,11 @@ A Docker setup is included for self-hosting (`docker compose up --build`). The
 production deployment workflow is intentionally left open for now — pick a target
 later.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add lessons and quizzes and run
+the project checks.
+
 ## Project structure
 
 ```text
